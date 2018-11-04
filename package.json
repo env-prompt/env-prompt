@@ -10,12 +10,6 @@
   "bin": {
     "env-prompt": "./dist/index.js"
   },
-  "config": {
-    "envPrompt": {
-      "file": "../.env",
-      "distFile": ".env.dist"
-    }
-  },
   "author": "Brian Kotos <brian.kotos@gmail.com>",
   "license": "MIT",
   "devDependencies": {
