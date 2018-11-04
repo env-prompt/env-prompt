@@ -7,6 +7,22 @@
     "start": "webpack --mode=development --watch",
     "build-dist": "webpack --mode=production"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bkotos/env-prompt.git"
+  },
+  "keywords": [
+    ".env",
+    "env",
+    "parameters",
+    "environment",
+    "variables",
+    "configuration",
+    "config",
+    "interactive",
+    "install"
+  ],
+  "readmeFilename": "README.md",
   "bin": {
     "env-prompt": "./dist/index.js"
   },
