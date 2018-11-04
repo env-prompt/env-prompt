@@ -1,0 +1,29 @@
+{
+  "name": "env-prompt",
+  "version": "0.0.0",
+  "description": "Dependency-free utility that interactively builds your .env file when running npm install.",
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack --watch",
+    "postinstall": "node dist/index.js"
+  },
+  "bin": {
+    "env-prompt": "./dist/index.js"
+  },
+  "config": {
+    "envPrompt": {
+      "file": "../.env",
+      "distFile": ".env.dist"
+    }
+  },
+  "author": "Brian Kotos <brian.kotos@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^10.12.2",
+    "ts-loader": "^5.3.0",
+    "tsconfig-paths-webpack-plugin": "^3.2.0",
+    "typescript": "^3.1.6",
+    "webpack": "^4.24.0",
+    "webpack-cli": "^3.1.2"
+  }
+}

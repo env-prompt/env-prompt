@@ -1,0 +1,7 @@
+.env
+.env.dist
+node_modules
+.git
+.gitignore
+.idea
+webpack.config.js
