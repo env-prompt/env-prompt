@@ -4,8 +4,8 @@
   "description": "Dependency-free utility that interactively builds your .env file when running npm install.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --watch",
-    "postinstall": "node dist/index.js"
+    "start": "webpack --mode=development --watch",
+    "build-dist": "webpack --mode=production"
   },
   "bin": {
     "env-prompt": "./dist/index.js"
