@@ -1,7 +1,5 @@
-import {
-    EnvironmentVariable,
-    EnvironmentVariableDictionary
-} from 'src/EnvPrompt/Environment/Model/EnvironmentVariable';
+import { EnvironmentVariable } from '@/EnvPrompt/Environment/Model/EnvironmentVariable';
+import { EnvironmentVariableDictionary } from '@/EnvPrompt/Environment/Model/EnvironmentVariableDictionary';
 import { EnvironmentVariableSerializer } from '@/EnvPrompt/Environment/Service/EnvironmentVariableSerializer';
 
 /**

@@ -3,7 +3,3 @@ export interface EnvironmentVariable {
 
     value: string;
 }
-
-export interface EnvironmentVariableDictionary {
-    [name: string]: EnvironmentVariable;
-}

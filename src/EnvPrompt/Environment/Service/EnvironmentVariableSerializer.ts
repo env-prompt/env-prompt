@@ -1,4 +1,4 @@
-import { EnvironmentVariableDictionary } from '@/EnvPrompt/Environment/Model/EnvironmentVariable';
+import { EnvironmentVariableDictionary } from '@/EnvPrompt/Environment/Model/EnvironmentVariableDictionary';
 
 /**
  * Format-agnostic interface for environment variable serializers

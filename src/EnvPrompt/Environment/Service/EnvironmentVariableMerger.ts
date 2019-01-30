@@ -1,7 +1,7 @@
 import { FilesystemFacade } from '@/EnvPrompt/Filesystem/Service/FilesystemFacade';
 import { CommandLinePrompter } from '@/EnvPrompt/UserInteraction/Service/CommandLinePrompter';
 import { EnvironmentVariableSerializer } from '@/EnvPrompt/Environment/Service/EnvironmentVariableSerializer';
-import { EnvironmentVariableDictionary } from '@/EnvPrompt/Environment/Model/EnvironmentVariable';
+import { EnvironmentVariableDictionary } from '@/EnvPrompt/Environment/Model/EnvironmentVariableDictionary';
 
 export class EnvironmentVariableMerger {
     private filesystemFacade: FilesystemFacade;
