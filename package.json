@@ -1,6 +1,6 @@
 {
   "name": "env-prompt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Dependency-free utility that interactively builds your .env file when running npm install.",
   "main": "index.js",
   "scripts": {
