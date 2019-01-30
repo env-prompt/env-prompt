@@ -42,7 +42,7 @@ Env-prompt is now setup, and will be triggered when you run `npm install`.
 
 ## Options
 ```sh
--d, --distFile <path>         
+-d, --distFile <path>
        Change the distributed environment file env-prompt reads from. (default: .env.dist)
 
 -l, --localFile <path>
@@ -50,5 +50,4 @@ Env-prompt is now setup, and will be triggered when you run `npm install`.
 ```
 
 ## [Product backlog](https://github.com/env-prompt/env-prompt/issues?q=is%3Aissue+is%3Aopen+label%3Agroomed)
-*See an issue not listed in the product backlog?  Feel free to
- [open an issue](https://github.com/env-prompt/env-prompt/issues/new).*
+*Is your use case not covered?  Feel free to [open an issue](https://github.com/env-prompt/env-prompt/issues/new).*
