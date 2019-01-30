@@ -1,6 +1,6 @@
 {
-  "name": "envprompt",
-  "version": "0.1.0",
+  "name": "env-prompt",
+  "version": "1.0.0",
   "description": "Dependency-free utility that interactively builds your .env file when running npm install.",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/envprompt/envprompt.git"
+    "url": "git://github.com/env-prompt/env-prompt.git"
   },
   "keywords": [
     ".env",
@@ -24,7 +24,7 @@
   ],
   "readmeFilename": "README.md",
   "bin": {
-    "envprompt": "./dist/index.js"
+    "env-prompt": "./dist/index.js"
   },
   "author": "Brian Kotos <brian.kotos@gmail.com>",
   "license": "MIT",
