@@ -2,12 +2,12 @@
 A dependency-free utility that prompts you for your project's environment variables.
 
 ## How does it work?
-On `npm install`, env-prompt reads from two environment files:
- - a distributed version (default: `.env.dist`)
- - a local version (default: `.env`)
+On `npm install`, env-prompt reads environment variables from two files in your project:
+ - a **distributed** file (default: **`.env.dist`**)
+ - a git ignored **local** file (default: **`.env`**)
 
-Envprompt will diff these two files, prompting you for any values that exist in the distributed version
- but not your local version.
+Envprompt will diff these two files, prompting you for any values that exist in your distributed file but not in your
+ local file.  Your newly input values will be written to your local environment file.
 
 ## Getting started
 1) Install env-prompt:
@@ -15,7 +15,7 @@ Envprompt will diff these two files, prompting you for any values that exist in 
 $ npm install -D env-prompt
 ```
 
-2) Add a postinstall hook to your `package.json`:
+2) Add a postinstall hook to your `package.json` file:
 ```diff
 {
   "name": "test",
@@ -29,7 +29,7 @@ $ npm install -D env-prompt
 }
 ```
 
-3) Create a `.env.dist` file in the same directory as your `package.json`:
+3) Create a `.env.dist` file in the same directory as your `package.json` file:
 ```
 DB_USER=root
 DB_PASS=root123
@@ -38,8 +38,7 @@ DB_PORT=3306
 DB_NAME=sakila
 ```
 
-Env-prompt is now configured.  On `npm install`, you will now be prompted for any new values in your `.env.dist`
- file that don't exist in `.env`.
+Env-prompt is now setup, and will be triggered when you run `npm install`.
 
 ## Options
 ```sh
