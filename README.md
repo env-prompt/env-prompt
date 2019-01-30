@@ -15,7 +15,7 @@ Envprompt will diff these two files, prompting you for any values that exist in 
 $ npm install -D env-prompt
 ```
 
-2) Add a postinstall hook to `package.json`:
+2) Add a postinstall hook to your `package.json`:
 ```diff
 {
   "name": "test",
