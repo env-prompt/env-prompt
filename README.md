@@ -6,7 +6,7 @@ On `npm install`, env-prompt reads environment variables from two files in your 
  - a **distributed** file (default: **`.env.dist`**)
  - a git ignored **local** file (default: **`.env`**)
 
-Envprompt will diff these two files, prompting you for any values that exist in your distributed file but not in your
+Env-prompt will diff these two files, prompting you for any values that exist in your distributed file but not in your
  local file.  Your newly input values will be written to your local environment file.
 
 ## Getting started
