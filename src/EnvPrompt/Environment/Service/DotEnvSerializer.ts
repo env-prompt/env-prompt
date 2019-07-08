@@ -8,7 +8,9 @@ import { EnvironmentVariableSerializer } from '@/EnvPrompt/Environment/Service/E
 export class DotEnvSerializer implements EnvironmentVariableSerializer {
     public static readonly DELIMITER = '=';
 
-    public static readonly DOT_ENV_LINE_EXPRESSION = /^[A-Za-z](?:\w)*=(?:[^\s])+/;
+    public static readonly LINE_EXPRESSION = /^\s*[A-Za-z](?:\w)*=(?:[^\s])+/;
+
+    public static readonly COMMENT_EXPRESSION = /^\s*#.*/;
 
     /**
      * Parse input .env file content and return a dictionary of environment variables
@@ -29,6 +31,10 @@ export class DotEnvSerializer implements EnvironmentVariableSerializer {
 
         for (let i: number = 0; i < lines.length; i++) {
             const line: string = lines[i];
+
+            if (this.isComment(line)) {
+                continue;
+            }
 
             if (!this.isValidSyntax(line)) {
                 throw new Error(`Invalid environment variable: ${line}`);
@@ -70,6 +76,13 @@ export class DotEnvSerializer implements EnvironmentVariableSerializer {
      * Determine if the given .env line is syntactically valid
      */
     private isValidSyntax(content: string): boolean {
-        return DotEnvSerializer.DOT_ENV_LINE_EXPRESSION.test(content);
+        return DotEnvSerializer.LINE_EXPRESSION.test(content);
+    }
+
+    /**
+     * Determine if the given .env line is a comment
+     */
+    private isComment(content: string): boolean {
+        return DotEnvSerializer.COMMENT_EXPRESSION.test(content);
     }
 }
