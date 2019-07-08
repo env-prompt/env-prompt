@@ -1,40 +1,42 @@
-import { SerializationService } from '@/EnvPrompt/Service/SerializationService';
-import { NodeFactory } from '@/EnvPrompt/Factory/NodeFactory';
-import { FilesystemService } from '@/EnvPrompt/Service/FilesystemService';
-import { UserInteractionService } from '@/EnvPrompt/Service/UserInteractionService';
-import { NodePackage } from '@/EnvPrompt/Model/NodePackage';
-import { PreFlightService } from '@/EnvPrompt/Service/PreFlightService';
+import { OptionsContainer } from '@/EnvPrompt/Option/Model/OptionsContainer';
+import { OptionsDecoder } from '@/EnvPrompt/Option/Service/OptionsDecoder';
+import { OptionsDenormalizer } from '@/EnvPrompt/Option/Service/OptionsDenormalizer';
+import { OptionsDeserializer } from '@/EnvPrompt/Option/Service/OptionsDeserializer';
+import { FilesystemFacade } from '@/EnvPrompt/Filesystem/Service/FilesystemFacade';
+import { StdIoReaderFlyweight } from '@/EnvPrompt/UserInteraction/Service/StdIoReaderFlyweight';
+import { CommandLinePrompter } from '@/EnvPrompt/UserInteraction/Service/CommandLinePrompter';
+import { TextFormatter } from '@/EnvPrompt/UserInteraction/Service/TextFormatter';
+import { DotEnvSerializer } from '@/EnvPrompt/Environment/Service/DotEnvSerializer';
+import { EnvironmentVariableMerger } from '@/EnvPrompt/Environment/Service/EnvironmentVariableMerger';
 
-let serializationService: SerializationService = new SerializationService();
-let nodeFactory: NodeFactory = new NodeFactory();
-let filesystemService: FilesystemService = new FilesystemService(serializationService, nodeFactory);
-let userInteractionService: UserInteractionService = new UserInteractionService(filesystemService, nodeFactory);
-let preFlightService: PreFlightService = new PreFlightService(filesystemService);
-
-/**
- * Runs the application
- */
-function main() {
-    // Load contents of package.json.
-    let nodePackage: NodePackage = filesystemService.loadNodePackage();
-
-    // Run pre-flight check to validate the node package.
-    nodePackage = preFlightService.validateNodePackage(nodePackage);
-
-    // Kick it off.
-    userInteractionService.mergeFiles(nodePackage.config.envPrompt.distFile, nodePackage.config.envPrompt.file);
-}
+// instantiate necessary services
+const optionsDeserializer = new OptionsDeserializer(new OptionsDecoder(), new OptionsDenormalizer());
+const filesystemFacade: FilesystemFacade = new FilesystemFacade();
+const dotEnvSerializer: DotEnvSerializer = new DotEnvSerializer();
+const commandLinePrompter: CommandLinePrompter = new CommandLinePrompter(
+    new StdIoReaderFlyweight(),
+    new TextFormatter()
+);
+const environmentVariableMerger: EnvironmentVariableMerger = new EnvironmentVariableMerger(
+    filesystemFacade,
+    dotEnvSerializer,
+    commandLinePrompter
+);
 
 /**
- * Error handling
+ * Handle exceptions and promise rejections
  */
-function error(e: Error) {
-    userInteractionService.printError(e);
+function errorHandler (e: Error) {
+    commandLinePrompter.printError(e);
     process.exit(1);
 }
 
-try {
-    main();
-} catch (e) {
-    error(e);
-}
+process
+    .on('unhandledRejection', errorHandler)
+    .on('uncaughtException', errorHandler);
+
+// parse command-line options
+const optionsContainer: OptionsContainer = optionsDeserializer.deserialize(process.argv);
+
+// merge "dist" and "local" environment variable files
+environmentVariableMerger.merge(<string>optionsContainer.distFile.value, <string>optionsContainer.localFile.value);
