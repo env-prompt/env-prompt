@@ -24,7 +24,7 @@ export class EnvironmentVariableMerger {
      * Interactively merge the "dist" and "local" environment variable files, writing any missing values to the
      *  "local" file.
      */
-    public async merge(distFilePath: string, localFilePath: string) {
+    public async merge(distFilePath: string, localFilePath: string, nonInteractive = false) {
         // at minimum, a "dist" file is required
         if (!this.filesystemFacade.fileExists(distFilePath)) {
             throw new Error(`Could not locate ${distFilePath}`);
@@ -38,16 +38,21 @@ export class EnvironmentVariableMerger {
         // merge the two dictionaries
         for (let name in distEnvironmentVariables) {
             if (!localEnvironmentVariables[name]) {
-                // only prompt the user once that new environment variables exist
-                if (!isPromptGiven) {
-                    isPromptGiven = true;
-                    this.commandLinePrompter.promptUserAboutNewVariables();
-                }
+                if(nonInteractive) {
+                    this.commandLinePrompter.notifyUserAboutNewVariables(name, distEnvironmentVariables[name].value);
+                    localEnvironmentVariables[name] = distEnvironmentVariables[name];
+                } else {
+                    // only prompt the user once that new environment variables exist
+                    if (!isPromptGiven) {
+                        isPromptGiven = true;
+                        this.commandLinePrompter.promptUserAboutNewVariables();
+                    }
 
-                // get user input for environment variable
-                localEnvironmentVariables[name] = await this.commandLinePrompter.promptUserForEnvironmentVariable(
-                    distEnvironmentVariables[name]
-                );
+                    // get user input for environment variable
+                    localEnvironmentVariables[name] = await this.commandLinePrompter.promptUserForEnvironmentVariable(
+                        distEnvironmentVariables[name]
+                    );
+                }
             }
         }
 

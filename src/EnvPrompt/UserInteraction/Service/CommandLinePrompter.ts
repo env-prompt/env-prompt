@@ -21,6 +21,10 @@ export class CommandLinePrompter {
         ));
     }
 
+    public notifyUserAboutNewVariables(name: string, value: string) {
+        console.warn(this.textFormatter.fgYellow(`Added new environment variable ${name}=${value}`));
+    }
+
     /**
      * Prompt user to input an environment variable's value
      */

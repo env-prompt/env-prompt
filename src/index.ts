@@ -39,4 +39,8 @@ process
 const optionsContainer: OptionsContainer = optionsDeserializer.deserialize(process.argv);
 
 // merge "dist" and "local" environment variable files
-environmentVariableMerger.merge(<string>optionsContainer.distFile.value, <string>optionsContainer.localFile.value);
+environmentVariableMerger.merge(
+    <string>optionsContainer.distFile.value,
+    <string>optionsContainer.localFile.value,
+    <boolean>optionsContainer.nonInteractive.value
+);
