@@ -38,16 +38,20 @@ export class EnvironmentVariableMerger {
         // merge the two dictionaries
         for (let name in distEnvironmentVariables) {
             if (!localEnvironmentVariables[name]) {
-                // only prompt the user once that new environment variables exist
-                if (!isPromptGiven) {
-                    isPromptGiven = true;
-                    this.commandLinePrompter.promptUserAboutNewVariables();
-                }
+                if(process.env.CI != "true") {
+                    // only prompt the user once that new environment variables exist
+                    if (!isPromptGiven) {
+                        isPromptGiven = true;
+                        this.commandLinePrompter.promptUserAboutNewVariables();
+                    }
 
-                // get user input for environment variable
-                localEnvironmentVariables[name] = await this.commandLinePrompter.promptUserForEnvironmentVariable(
-                    distEnvironmentVariables[name]
-                );
+                    // get user input for environment variable
+                    localEnvironmentVariables[name] = await this.commandLinePrompter.promptUserForEnvironmentVariable(
+                        distEnvironmentVariables[name]
+                    );
+                } else {
+                    localEnvironmentVariables[name] = distEnvironmentVariables[name];
+                }
             }
         }
 
