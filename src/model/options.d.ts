@@ -1,7 +1,7 @@
 export type ArgumentName = string
 export type ArgumentValue = string | boolean
 
-export type RawArgument = ArgumentName | ArgumentValue
+export type RawArgument = string
 export type ParsedArgument = [ArgumentName, ArgumentValue]
 export type ParsedArgumentMap = Record<ArgumentName, ArgumentValue>
 

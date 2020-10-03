@@ -1,7 +1,7 @@
 import { RawArgument, ArgumentName, ArgumentValue, ParsedArgument, Options, ParsedArgumentMap } from "@/model/options"
 import { defaultOptions, optionNameByArgumentName } from "@/data/options";
 
-const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value as string)
+const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value)
 
 const isFlagArgument = ([_, value]: ParsedArgument): boolean => typeof value === 'boolean'
 
@@ -10,7 +10,7 @@ const getArgumentValue = (nameIndex: number, rawArguments: RawArgument[]): Argum
     const value = rawArguments[index]
 
     const isEndOfRawArguments = rawArguments.length === index
-    const isValueAnArgumentName = isArgumentName(value as string)
+    const isValueAnArgumentName = isArgumentName(value)
     const isFlagArgument = isEndOfRawArguments || isValueAnArgumentName
 
     return isFlagArgument ? true : value
