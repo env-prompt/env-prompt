@@ -34,8 +34,9 @@ export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options
 
     Object
         .entries(parsedArgumentMap)
-        .filter(([_, argumentValue]: ParsedArgument) => !isFlag(argumentValue))
-        .filter(([argumentName]: ParsedArgument) => argumentName in optionNameByArgumentName)
+        .filter(([argumentName, argumentValue]: ParsedArgument) =>
+            !isFlag(argumentValue) && argumentName in optionNameByArgumentName
+        )
         .forEach(([argumentName, argumentValue]: ParsedArgument) => {
             const optionName = optionNameByArgumentName[argumentName]
             options[optionName] = argumentValue as string
