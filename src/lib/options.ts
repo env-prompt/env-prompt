@@ -1,50 +1,44 @@
-type RawArguments = string[]
-type ArgumentName = string
-type ArgumentValue = string|boolean
-type PairedArgument = [ArgumentName, ArgumentValue]
+import { RawArgument, ArgumentName, ArgumentValue, ParsedArgument, Options, ParsedArgumentMap } from "@/model/options"
+import { defaultOptions, optionNameByArgumentName } from "@/data/options";
 
-export interface Options {
-    distFile: string
-    localFile: string
+const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value as string)
+
+const isFlagArgument = ([_, value]: ParsedArgument): boolean => typeof value === 'boolean'
+
+const getArgumentValue = (nameIndex: number, rawArguments: RawArgument[]): ArgumentValue => {
+    const index = nameIndex + 1
+    const value = rawArguments[index]
+
+    const isEndOfRawArguments = rawArguments.length === index
+    const isValueAnArgumentName = isArgumentName(value as string)
+    const isFlagArgument = isEndOfRawArguments || isValueAnArgumentName
+
+    return isFlagArgument ? true : value
 }
 
-const isArgumentName = (value: string): boolean => /^--?\w+$/.test(value)
-
-const getPairedArgumentsFromRawArguments = (rawArguments: RawArguments): PairedArgument[] => {
-    const pairedArguments: PairedArgument[] = []
-    for (let i = 0; i < rawArguments.length; i++) {
-        const currentValue = rawArguments[i]
-        const isCurrentValueArgument = isArgumentName(currentValue)
-        if (isCurrentValueArgument) {
-            const nextValue = rawArguments[i + 1]
-            const isNextValueSet = rawArguments.length > i + 1
-            const isNextValueArgument = isArgumentName(nextValue)
-
-            const argumentName: ArgumentName = currentValue
-            const argumentValue: ArgumentValue = isNextValueSet && !isNextValueArgument ? nextValue : true
-            pairedArguments.push([argumentName, argumentValue])
-        }
-    }
-
-    return pairedArguments
-}
-
-export const getOptionsFromRawArguments = (rawArguments: RawArguments): Options => {
-    const options: Options = {
-        distFile: '.env.dist',
-        localFile: '.env'
-    }
-    getPairedArgumentsFromRawArguments(rawArguments)
-        .filter(([_, value]: PairedArgument) => typeof value === 'string')
-        .forEach(([name, value]: PairedArgument) => {
-            const isDistFile = ['-d', '--distFile'].includes(name)
-            const isLocalFile = ['-l', '--localFile'].includes(name)
-
-            if (isDistFile) {
-                options.distFile = value as string
-            } else if (isLocalFile) {
-                options.localFile = value as string
+const parseArguments = (rawArguments: RawArgument[]): ParsedArgumentMap => {
+    const parsedArgumentMap: ParsedArgumentMap = {}
+    rawArguments
+        .forEach((argumentName: ArgumentName, index: number, rawArguments: RawArgument[]) => {
+            if (isArgumentName) {
+                parsedArgumentMap[argumentName] = getArgumentValue(index, rawArguments)
             }
+        })
+
+    return parsedArgumentMap
+}
+
+export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options => {
+    const parsedArgumentMap = parseArguments(rawArguments)
+    const options: Options = { ...defaultOptions }
+
+    Object
+        .entries(parsedArgumentMap)
+        .filter(parsedArgument => !isFlagArgument(parsedArgument))
+        .filter(([argumentName]: ParsedArgument) => argumentName in optionNameByArgumentName)
+        .forEach(([argumentName, argumentValue]: ParsedArgument) => {
+            const optionName = optionNameByArgumentName[argumentName]
+            options[optionName] = argumentValue as string
         })
 
     return options
