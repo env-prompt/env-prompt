@@ -13,6 +13,4 @@ type OptionName = keyof Options
 type OptionValue = Options[OptionName]
 export type Option = [OptionName, OptionValue]
 
-export type ArgumentNamesByOptionName = Record<OptionName, ArgumentName[]>
 export type OptionNameByArgumentName = Record<ArgumentName, OptionName>
-export type OptionArgumentMaps = [ArgumentNamesByOptionName, OptionNameByArgumentName]

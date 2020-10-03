@@ -1,27 +1,27 @@
-import { RawArgument, ArgumentName, ArgumentValue, ParsedArgument, Options, ParsedArgumentMap } from "@/model/options"
-import { defaultOptions, optionNameByArgumentName } from "@/data/options";
+import { RawArgument, ArgumentValue, ParsedArgument, Options, ParsedArgumentMap } from "@/model/options"
+import { defaultOptions, optionNameByArgumentName } from "@/data/options"
 
 const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value)
 
-const isFlagArgument = ([_, value]: ParsedArgument): boolean => typeof value === 'boolean'
+const isFlag = (value: ArgumentValue): boolean => typeof value === 'boolean'
 
-const getArgumentValue = (nameIndex: number, rawArguments: RawArgument[]): ArgumentValue => {
-    const index = nameIndex + 1
-    const value = rawArguments[index]
+const getArgumentValue = (argumentNameIndex: number, rawArguments: RawArgument[]): ArgumentValue => {
+    const valueIndex = argumentNameIndex + 1
+    const value = rawArguments[valueIndex]
 
-    const isEndOfRawArguments = rawArguments.length === index
+    const isEndOfRawArguments = rawArguments.length === valueIndex
     const isValueAnArgumentName = isArgumentName(value)
-    const isFlagArgument = isEndOfRawArguments || isValueAnArgumentName
+    const useFlagForArgumentValue = isEndOfRawArguments || isValueAnArgumentName
 
-    return isFlagArgument ? true : value
+    return useFlagForArgumentValue ? true : value
 }
 
 const parseArguments = (rawArguments: RawArgument[]): ParsedArgumentMap => {
     const parsedArgumentMap: ParsedArgumentMap = {}
     rawArguments
-        .forEach((argumentName: ArgumentName, index: number, rawArguments: RawArgument[]) => {
-            if (isArgumentName) {
-                parsedArgumentMap[argumentName] = getArgumentValue(index, rawArguments)
+        .forEach((argumentName: RawArgument, argumentNameIndex: number) => {
+            if (isArgumentName(argumentName)) {
+                parsedArgumentMap[argumentName] = getArgumentValue(argumentNameIndex, rawArguments)
             }
         })
 
@@ -34,7 +34,7 @@ export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options
 
     Object
         .entries(parsedArgumentMap)
-        .filter(parsedArgument => !isFlagArgument(parsedArgument))
+        .filter(([_, argumentValue]: ParsedArgument) => !isFlag(argumentValue))
         .filter(([argumentName]: ParsedArgument) => argumentName in optionNameByArgumentName)
         .forEach(([argumentName, argumentValue]: ParsedArgument) => {
             const optionName = optionNameByArgumentName[argumentName]
