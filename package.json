@@ -4,8 +4,10 @@
   "description": "A dependency-free utility that prompts you for your project's environment variables.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --mode=development --watch",
-    "build-dist": "webpack --mode=production"
+    "start": "npm run build:dev",
+    "build:dev": "webpack --mode=development --watch",
+    "build:dist": "webpack --mode=production",
+    "test:cli": "node dist/index.js -d test/cli/.env.dist -l test/cli/.env"
   },
   "repository": {
     "type": "git",
