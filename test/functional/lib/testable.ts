@@ -22,7 +22,11 @@ export const file = (path: string) => {
 }
 
 export const directory = (path: string) => {
-    const create = () => fs.mkdirSync(path)
+    const create = () => {
+        try {
+            fs.mkdirSync(path)
+        } catch (e) {}
+    }
     const exists = (): boolean => fs.existsSync(path)
     const remove = () => {
         try {
