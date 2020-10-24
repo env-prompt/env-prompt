@@ -43,6 +43,11 @@ export const gitStatus = async (cwd: string): Promise<void> => new Promise<void>
         .on('close', () => resolve())
 )
 
+export const gitListBranches = async (cwd: string): Promise<void> => new Promise<void>((resolve) =>
+    spawn('git', ['branch', '-v'], { cwd, stdio: 'inherit' })
+        .on('close', () => resolve())
+)
+
 export const gitAdd = (cwd: string, filePath: string) =>
     spawn('git', ['add', filePath], { cwd })
 
@@ -69,7 +74,12 @@ const main = async () => {
         output: process.stdout
     })
 
+    console.log('git status:')
     await gitStatus(projectRoot)
+    console.log('')
+
+    console.log('git branches:')
+    await gitListBranches(projectRoot)
     console.log('')
 
     if (!await shouldProceed(rl)) process.exit()
