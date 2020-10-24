@@ -19,8 +19,8 @@ const getNextVersionFromUser = async (rl: ReadLine, currentVersion: string): Pro
     return nextVersion
 }
 
-const shouldProceed = async (rl: ReadLine): Promise<boolean> =>
-    (await getInputFromUser(rl, 'Proceed? (Y/n)  > ')).toUpperCase() === 'Y'
+const shouldProceed = async (rl: ReadLine, message: string = 'Proceed?'): Promise<boolean> =>
+    (await getInputFromUser(rl, `${message} (Y/n)  > `)).toUpperCase() === 'Y'
 
 const isValidSemanticVersion = (value: string): boolean => /^\d+.\d+.\d+$/.test(value)
 
@@ -38,10 +38,14 @@ const writePackageJson = (filePath: string, packageJson: Object) => fs.writeFile
 const replacePackageJsonVersion = (fileContents: string, version: string): string =>
     fileContents.replace(/"version": ".*"/, `"version": "${version}"`)
 
-export const gitStatus = async (cwd: string): Promise<void> => new Promise<void>((resolve) =>
-    spawn('git', ['status'], { cwd, stdio: 'inherit' })
-        .on('close', () => resolve())
-)
+export const spawnWithForwardedStdIo = async (command: string, args: string[], cwd: string): Promise<void> =>
+    new Promise<void>((resolve) =>
+        spawn(command, args, { cwd, stdio: 'inherit' })
+            .on('close', () => resolve())
+    )
+
+const gitStatus = async (cwd: string) =>
+    await spawnWithForwardedStdIo('git', ['status'], cwd)
 
 export const gitListBranches = async (cwd: string): Promise<void> => new Promise<void>((resolve) =>
     spawn('git', ['branch', '-v'], { cwd, stdio: 'inherit' })
@@ -63,6 +67,15 @@ export const gitPushMaster = (cwd: string) =>
 export const gitPushTags = (cwd: string) =>
     spawn('git', ['push', 'upstream', '--tags'], { cwd })
 
+const gitFetch = async (cwd: string, remote: string) =>
+    await spawnWithForwardedStdIo('git', ['fetch', remote], cwd)
+
+const gitDeleteBranch = async (cwd: string, branch: string) =>
+    await spawnWithForwardedStdIo('git', ['branch', '-D', branch], cwd)
+
+const gitCheckoutNewBranch = async (cwd: string, newBranch: string, sourceBranch: string) =>
+    await spawnWithForwardedStdIo('git', ['checkout', '-tb', newBranch, sourceBranch], cwd)
+
 export const npmPublish = (cwd: string) =>
     spawn('npm', ['publish'], { cwd })
 
@@ -82,7 +95,19 @@ const main = async () => {
     await gitListBranches(projectRoot)
     console.log('')
 
-    if (!await shouldProceed(rl)) process.exit()
+    if (!await shouldProceed(rl, 'Proceed with current git status and branches?')) process.exit()
+    console.log('')
+
+    if (!await shouldProceed(rl, 'Delete and re-create local "tmp" branch?')) process.exit()
+    await gitFetch(projectRoot, 'upstream')
+    await gitDeleteBranch(projectRoot, 'tmp')
+    await gitCheckoutNewBranch(projectRoot, 'tmp', 'upstream/master')
+    console.log('')
+
+    if (!await shouldProceed(rl, 'Delete and re-create local "master" branch?')) process.exit()
+    await gitFetch(projectRoot, 'upstream')
+    await gitDeleteBranch(projectRoot, 'master')
+    await gitCheckoutNewBranch(projectRoot, 'master', 'upstream/master')
     console.log('')
 
     const nextVersion = await getNextVersionFromUser(rl, currentVersion)
