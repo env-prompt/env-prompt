@@ -38,34 +38,36 @@ const writePackageJson = (filePath: string, packageJson: Object) => fs.writeFile
 const replacePackageJsonVersion = (fileContents: string, version: string): string =>
     fileContents.replace(/"version": ".*"/, `"version": "${version}"`)
 
-export const spawnWithForwardedStdIo = async (command: string, args: string[], cwd: string): Promise<void> =>
-    new Promise<void>((resolve) =>
-        spawn(command, args, { cwd, stdio: 'inherit' })
+export const spawnWithForwardedStdIo = async (command: string, args: string[], options: Object): Promise<void> => {
+    console.log(`${command} ${args.join(' ')}`)
+    return new Promise<void>((resolve) =>
+        spawn(command, args, {stdio: 'inherit', ...options})
             .on('close', () => resolve())
     )
+}
 
 const gitStatus = async (cwd: string) =>
-    await spawnWithForwardedStdIo('git', ['status'], cwd)
+    await spawnWithForwardedStdIo('git', ['status'], { cwd })
 
 export const gitListBranches = async (cwd: string): Promise<void> => new Promise<void>((resolve) =>
     spawn('git', ['branch', '-v'], { cwd, stdio: 'inherit' })
         .on('close', () => resolve())
 )
 
-export const gitAdd = (cwd: string, filePath: string) =>
-    spawn('git', ['add', filePath], { cwd })
+export const gitAdd = async (cwd: string, filePath: string) =>
+    spawnWithForwardedStdIo('git', ['add', filePath], { cwd })
 
-export const gitCommit = (cwd: string, message: string) =>
-    spawn('git', ['commit', '-m', `${message}`], { cwd })
+export const gitCommit = async (cwd: string, message: string) =>
+    spawnWithForwardedStdIo('git', ['commit', '-m', `${message}`], { cwd })
 
-export const gitTag = (cwd: string, version: string, message: string) =>
-    spawn('git', ['tag', version, ...(message ? ['-m', message] : [])], { cwd })
+export const gitTag = async (cwd: string, version: string, message: string) =>
+    spawnWithForwardedStdIo('git', ['tag', version, ...(message ? ['-m', message] : [])], { cwd })
 
-export const gitPushMaster = (cwd: string) =>
-    spawn('git', ['push', 'upstream', 'master'], { cwd })
+export const gitPushMaster = async (cwd: string) =>
+    spawnWithForwardedStdIo('git', ['push', 'upstream', 'master'], { cwd })
 
-export const gitPushTags = (cwd: string) =>
-    spawn('git', ['push', 'upstream', '--tags'], { cwd })
+export const gitPushTags = async (cwd: string) =>
+    spawnWithForwardedStdIo('git', ['push', 'upstream', '--tags'], { cwd })
 
 const gitFetch = async (cwd: string, remote: string) =>
     await spawnWithForwardedStdIo('git', ['fetch', remote], cwd)
@@ -76,8 +78,8 @@ const gitDeleteBranch = async (cwd: string, branch: string) =>
 const gitCheckoutNewBranch = async (cwd: string, newBranch: string, sourceBranch: string) =>
     await spawnWithForwardedStdIo('git', ['checkout', '-tb', newBranch, sourceBranch], cwd)
 
-export const npmPublish = (cwd: string) =>
-    spawn('npm', ['publish'], { cwd })
+export const npmPublish = async (cwd: string) =>
+    await spawnWithForwardedStdIo('npm', ['publish'], { cwd })
 
 const main = async () => {
     const projectRoot = path.resolve(__dirname, '..')
@@ -117,16 +119,17 @@ const main = async () => {
     console.log('')
     rl.close()
 
+    console.log('Updating package.json version...')
     const packageJson = readPackageJson(packageJsonFilePath)
     const packageJsonWithNextVersion = replacePackageJsonVersion(packageJson, nextVersion)
     writePackageJson(packageJsonFilePath, packageJsonWithNextVersion)
 
-    gitAdd(projectRoot, packageJsonFilePath)
-    gitCommit(projectRoot, `Version ${nextVersion}`)
-    gitTag(projectRoot, nextVersion, releaseMessage)
-    gitPushMaster(projectRoot)
-    gitPushTags(projectRoot)
-    npmPublish(projectRoot)
+    await gitAdd(projectRoot, packageJsonFilePath)
+    await gitCommit(projectRoot, `Version ${nextVersion}`)
+    await gitTag(projectRoot, nextVersion, releaseMessage)
+    await gitPushMaster(projectRoot)
+    await gitPushTags(projectRoot)
+    await npmPublish(projectRoot)
     console.log(`Version ${nextVersion} was successfully released to NPM!`)
     console.log('Draft new GitHub release here: https://github.com/env-prompt/env-prompt/releases/new')
 }
