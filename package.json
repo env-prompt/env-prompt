@@ -6,7 +6,8 @@
   "scripts": {
     "start": "webpack --mode=development --watch",
     "build-dist": "webpack --mode=production",
-    "test:functional": "npx jest ./test/functional/test.ts"
+    "test:functional": "npx jest ./test/functional/test.ts",
+    "release": "ts-node bin/release.ts"
   },
   "repository": {
     "type": "git",
