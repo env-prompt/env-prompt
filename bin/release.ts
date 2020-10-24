@@ -127,6 +127,7 @@ const main = async () => {
     gitPushMaster(projectRoot)
     gitPushTags(projectRoot)
     npmPublish(projectRoot)
-    console.log(`Version ${nextVersion} was successfully released!`)
+    console.log(`Version ${nextVersion} was successfully released to NPM!`)
+    console.log('Draft new GitHub release here: https://github.com/env-prompt/env-prompt/releases/new')
 }
 main()
