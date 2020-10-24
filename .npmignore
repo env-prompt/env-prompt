@@ -1,7 +1,9 @@
 .env
 .env.dist
 node_modules
+bin
 .git
 .gitignore
 .idea
 webpack.config.js
+
