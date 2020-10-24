@@ -49,10 +49,8 @@ export const spawnWithForwardedStdIo = async (command: string, args: string[], o
 const gitStatus = async (cwd: string) =>
     await spawnWithForwardedStdIo('git', ['status'], { cwd })
 
-export const gitListBranches = async (cwd: string): Promise<void> => new Promise<void>((resolve) =>
-    spawn('git', ['branch', '-v'], { cwd, stdio: 'inherit' })
-        .on('close', () => resolve())
-)
+export const gitListBranches = async (cwd: string) =>
+    await spawnWithForwardedStdIo('git', ['branch', '-v'], { cwd })
 
 export const gitAdd = async (cwd: string, filePath: string) =>
     spawnWithForwardedStdIo('git', ['add', filePath], { cwd })
@@ -89,11 +87,9 @@ const main = async () => {
         output: process.stdout
     })
 
-    console.log('git status:')
     await gitStatus(projectRoot)
     console.log('')
 
-    console.log('git branches:')
     await gitListBranches(projectRoot)
     console.log('')
 
