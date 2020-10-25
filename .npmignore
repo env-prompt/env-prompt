@@ -2,8 +2,8 @@
 .env.dist
 node_modules
 bin
+test
 .git
 .gitignore
 .idea
 webpack.config.js
-

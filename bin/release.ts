@@ -49,6 +49,15 @@ export const spawnWithForwardedStdIo = async (command: string, args: string[], o
 const gitStatus = async (cwd: string) =>
     await spawnWithForwardedStdIo('git', ['status'], { cwd })
 
+const buildDist = async (cwd: string) =>
+    await spawnWithForwardedStdIo('npm', ['run', 'build-dist'], { cwd })
+
+const npmInstall = async (cwd: string) =>
+    await spawnWithForwardedStdIo('npm', ['install'], { cwd })
+
+const rmRf = async (cwd: string, path: string) =>
+    await spawnWithForwardedStdIo('rm', ['-rm', path], { cwd })
+
 export const gitListBranches = async (cwd: string) =>
     await spawnWithForwardedStdIo('git', ['branch', '-v'], { cwd })
 
@@ -81,7 +90,9 @@ export const npmPublish = async (cwd: string) =>
 
 const main = async () => {
     const projectRoot = path.resolve(__dirname, '..')
+    const distDirectoryPath = path.resolve(projectRoot, 'dist')
     const packageJsonFilePath = path.resolve(projectRoot, 'package.json')
+    const packageLockJsonFilePath = path.resolve(projectRoot, 'package-lock.json')
     const rl: ReadLine = readline.createInterface({
         input: process.stdin,
         output: process.stdout
@@ -103,7 +114,6 @@ const main = async () => {
     console.log('')
 
     if (!await shouldProceed(rl, 'Delete and re-create local "master" branch?')) process.exit()
-    await gitFetch(projectRoot, 'upstream')
     await gitDeleteBranch(projectRoot, 'master')
     await gitCheckoutNewBranch(projectRoot, 'master', 'upstream/master')
     console.log('')
@@ -120,7 +130,12 @@ const main = async () => {
     const packageJsonWithNextVersion = replacePackageJsonVersion(packageJson, nextVersion)
     writePackageJson(packageJsonFilePath, packageJsonWithNextVersion)
 
+    await npmInstall(projectRoot)
+    await rmRf(projectRoot, distDirectoryPath)
+    await buildDist(projectRoot)
+
     await gitAdd(projectRoot, packageJsonFilePath)
+    await gitAdd(projectRoot, packageLockJsonFilePath)
     await gitCommit(projectRoot, `Version ${nextVersion}`)
     await gitTag(projectRoot, nextVersion, releaseMessage)
     await gitPushMaster(projectRoot)
