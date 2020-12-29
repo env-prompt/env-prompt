@@ -33,7 +33,7 @@ const isVersionChanged = (currentVersion: string, nextVersion: string) => {
 
 const readPackageJson = (filePath: string): string => fs.readFileSync(filePath).toString()
 
-const writePackageJson = (filePath: string, packageJson: Object) => fs.writeFileSync(filePath, packageJson)
+const writePackageJson = (filePath: string, packageJson: Object) => fs.writeFileSync(filePath, JSON.stringify(packageJson))
 
 const replacePackageJsonVersion = (fileContents: string, version: string): string =>
     fileContents.replace(/"version": ".*"/, `"version": "${version}"`)
