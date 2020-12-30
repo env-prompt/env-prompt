@@ -2,7 +2,7 @@ import readline from "readline"
 import { getOptionsFromRawArguments } from "@/lib/options";
 import { makeStdIoReader } from "@/lib/std-io-reader";
 import { makeCliPrompter } from "@/lib/cli";
-import { analyzeEnvSourceCode } from "./lib/env/lexer";
+import { analyzeEnvSourceCode } from "@/lib/env/lexer";
 
 const options = getOptionsFromRawArguments(process.argv)
 const stdIoReader = makeStdIoReader(() => readline.createInterface(process.stdin, process.stdout))
