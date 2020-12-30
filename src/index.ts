@@ -1,8 +1,8 @@
 import readline from "readline"
-import { getOptionsFromRawArguments } from "@/lib/options";
-import { makeStdIoReader } from "@/lib/std-io-reader";
-import { makeCliPrompter } from "@/lib/cli";
-import { analyzeEnvSourceCode } from "@/lib/env/lexer";
+import { getOptionsFromRawArguments } from "lib/options";
+import { makeStdIoReader } from "lib/std-io-reader";
+import { makeCliPrompter } from "lib/cli";
+import { analyzeEnvSourceCode } from "lib/env/lexer";
 
 const stdIoReader = makeStdIoReader(() => readline.createInterface(process.stdin, process.stdout))
 const cliPrompter = makeCliPrompter(console, stdIoReader)

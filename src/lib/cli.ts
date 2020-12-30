@@ -1,4 +1,4 @@
-import { StdIoReader } from "@/lib/std-io-reader"
+import { StdIoReader } from "lib/std-io-reader"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`

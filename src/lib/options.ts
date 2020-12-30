@@ -15,7 +15,7 @@ type Option = [OptionName, OptionValue]
 
 type OptionNameByArgumentName = Record<ArgumentName, OptionName>
 
-export const defaultOptions: Options = {
+const defaultOptions: Options = {
     distFile: '.env.dist',
     localFile: '.env'
 }
@@ -27,7 +27,7 @@ namespace ArgumentNames {
     export const localFile: ArgumentName = '--localFile'
 }
 
-export const optionNameByArgumentName: OptionNameByArgumentName = {
+const optionNameByArgumentName: OptionNameByArgumentName = {
     [ArgumentNames.distFileShorthand]: 'distFile',
     [ArgumentNames.distFile]: 'distFile',
     [ArgumentNames.localFileShorthand]: 'localFile',
