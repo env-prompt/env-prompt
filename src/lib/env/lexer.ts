@@ -126,10 +126,11 @@ const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token
         const char = src[i]
         const isClosingQuote = char === previousToken.value
         const isNewline = char === '\n'
+        const isComment = char === '#'
 
-        if ((isQuotedValue && isClosingQuote) || isNewline) {
-            break
-        }
+        if (isQuotedValue && isClosingQuote) break
+        if (isNewline && !isQuotedValue) break
+        if (isComment) break
 
         value = `${value}${char}`
     }

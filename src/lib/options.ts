@@ -1,5 +1,38 @@
-import { RawArgument, ArgumentValue, ParsedArgument, Options, ParsedArgumentMap } from "@/model/options"
-import { defaultOptions, optionNameByArgumentName } from "@/data/options"
+type ArgumentName = string
+type ArgumentValue = string | boolean
+
+type RawArgument = string
+type ParsedArgument = [ArgumentName, ArgumentValue]
+type ParsedArgumentMap = Record<ArgumentName, ArgumentValue>
+
+export interface Options {
+    distFilePath: string
+    localFilePath: string
+}
+type OptionName = keyof Options
+type OptionValue = Options[OptionName]
+type Option = [OptionName, OptionValue]
+
+type OptionNameByArgumentName = Record<ArgumentName, OptionName>
+
+const defaultOptions: Options = {
+    distFilePath: '.env.dist',
+    localFilePath: '.env'
+}
+
+namespace ArgumentNames {
+    export const distFilePathShorthand: ArgumentName = '-d'
+    export const distFilePath: ArgumentName = '--distFile'
+    export const localFilePathShorthand: ArgumentName = '-l'
+    export const localFilePath: ArgumentName = '--localFile'
+}
+
+const optionNameByArgumentName: OptionNameByArgumentName = {
+    [ArgumentNames.distFilePathShorthand]: 'distFilePath',
+    [ArgumentNames.distFilePath]: 'distFilePath',
+    [ArgumentNames.localFilePathShorthand]: 'localFilePath',
+    [ArgumentNames.localFilePath]: 'localFilePath',
+}
 
 const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value)
 

@@ -1,4 +1,4 @@
-import { StdIoReader } from "@/lib/std-io-reader"
+import { StdIoReader } from "lib/std-io-reader"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
@@ -21,6 +21,7 @@ export interface CliPrompter {
     promptUserAboutNewVariables: () => void
     promptUserForEnvironmentVariable: (environmentVariable: EnvironmentVariable) => Promise<EnvironmentVariable>
     printError: (error: Error) => void
+    printWarning: (warning: string) => void
 }
 export const makeCliPrompter = (console: Console, stdIoReader: StdIoReader): CliPrompter => ({
     promptUserAboutNewVariables: () => console.warn(fgYellow(
@@ -36,5 +37,7 @@ export const makeCliPrompter = (console: Console, stdIoReader: StdIoReader): Cli
         return { name, value }
     },
 
-    printError: (error) => console.error(fgRed('ERROR: ' + error.message))
+    printError: (error) => console.error(fgRed(`ERROR: ${error.message}`)),
+
+    printWarning: (warning) => console.error(fgYellow(warning))
 })
