@@ -160,7 +160,6 @@ const makeOperatorToken = (position: number, src: string, tokens: Token[]): Toke
 
 const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token => {
     let i = position
-    // TODO what is this value is a quote?
     let value = src[i++]
     const previousToken = getLastNonWhiteSpaceToken(tokens)
     const isQuotedValue = previousToken.type === TokenType.quote
