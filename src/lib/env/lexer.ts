@@ -12,6 +12,8 @@ export enum TokenType {
 export interface Token {
     type: TokenType
     position: number
+    line: number
+    column: number
     length: number
     value: string
 }
@@ -38,48 +40,76 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     const isQuotedLiteral = isLastTokenOpeningQuote(tokens)
     if (!isQuotedLiteral) {
         const isNewline = firstChar === '\n'
-        if (isNewline) return makeNewlineToken(position, src)
+        if (isNewline) return makeNewlineToken(position, src, tokens)
 
         const isComment = COMMENT_EXPRESSION.test(firstChar)
-        if (isComment) return makeCommentToken(position, src)
+        if (isComment) return makeCommentToken(position, src, tokens)
 
         const isCommentBody = isLastTokenComment(tokens)
-        if (isCommentBody) return makeCommentBodyToken(position, src)
+        if (isCommentBody) return makeCommentBodyToken(position, src, tokens)
 
         const isWhiteSpace = /^\s$/.test(firstChar)
-        if (isWhiteSpace) return makeWhiteSpaceToken(position, src)
+        if (isWhiteSpace) return makeWhiteSpaceToken(position, src, tokens)
 
         const isQuote = QUOTE_EXPRESSION.test(firstChar)
-        if (isQuote) return makeQuoteToken(position, src)
+        if (isQuote) return makeQuoteToken(position, src, tokens)
 
         const isOperator = OPERATOR_EXPRESSION.test(firstChar)
-        if (isOperator) return makeOperatorToken(position, src)
+        if (isOperator) return makeOperatorToken(position, src, tokens)
     }
 
     const isLiteral = hasAssignmentOperatorOnCurrentLine(tokens)
     if (isLiteral) return makeLiteralToken(position, src, tokens)
 
     const isIdentifier = IDENTIFIER_START_EXPRESSION.test(firstChar)
-    if (isIdentifier) return makeIdentifierToken(position, src)
+    if (isIdentifier) return makeIdentifierToken(position, src, tokens)
 
     throw new Error('Unrecognized token.')
 }
 
-const makeNewlineToken = (position: number, src: string): Token => ({
+export const getNextLine = (token: Token): number => getLine([token])
+
+export const getNextColumn = (token: Token): number => getColumn([token])
+
+const getLine = (tokens: Token[]): number => {
+    const isFirstToken = tokens.length === 0
+    if (isFirstToken) return 1
+
+    const { type, line } = tokens[tokens.length - 1]
+    const isNewLine = type === TokenType.newline
+    if (isNewLine) return line + 1
+    else return line
+}
+
+const getColumn = (tokens: Token[]): number => {
+    const isFirstToken = tokens.length === 0
+    if (isFirstToken) return 1
+
+    const { type, column, length } = tokens[tokens.length - 1]
+    const isNewLine = type === TokenType.newline
+    if (isNewLine) return 1
+    else return column + length
+}
+
+const makeNewlineToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.newline,
     position,
+    line: getLine(tokens),
+    column: getColumn(tokens),
     length: 1,
     value: src[position]
 })
 
-const makeCommentToken = (position: number, src: string): Token => ({
+const makeCommentToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.comment,
     position,
+    line: getLine(tokens),
+    column: getColumn(tokens),
     length: 1,
     value: src[position]
 })
 
-const makeCommentBodyToken = (position: number, src: string): Token => {
+const makeCommentBodyToken = (position: number, src: string, tokens: Token[]): Token => {
     let i = position
     let value = src[i++]
     for (; i < src.length; i++) {
@@ -94,28 +124,36 @@ const makeCommentBodyToken = (position: number, src: string): Token => {
     return {
         type: TokenType.commentBody,
         position,
+        line: getLine(tokens),
+        column: getColumn(tokens),
         length: value.length,
         value
     }
 }
 
-const makeWhiteSpaceToken = (position: number, src: string): Token => ({
+const makeWhiteSpaceToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.whitespace,
     position,
+    line: getLine(tokens),
+    column: getColumn(tokens),
     length: 1,
     value: src[position]
 })
 
-const makeQuoteToken = (position: number, src: string): Token => ({
+const makeQuoteToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.quote,
     position,
+    line: getLine(tokens),
+    column: getColumn(tokens),
     length: 1,
     value: src[position]
 })
 
-const makeOperatorToken = (position: number, src: string): Token => ({
+const makeOperatorToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.operator,
     position,
+    line: getLine(tokens),
+    column: getColumn(tokens),
     length: 1,
     value: src[position]
 })
@@ -149,12 +187,14 @@ const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token
     return {
         type: TokenType.literal,
         position,
+        line: getLine(tokens),
+        column: getColumn(tokens),
         length,
         value
     }
 }
 
-const makeIdentifierToken = (position: number, src: string): Token => {
+const makeIdentifierToken = (position: number, src: string, tokens: Token[]): Token => {
     let i = position
     let value = src[i++]
     for (; i < src.length; i++) {
@@ -170,6 +210,8 @@ const makeIdentifierToken = (position: number, src: string): Token => {
     return {
         type: TokenType.identifier,
         position,
+        line: getLine(tokens),
+        column: getColumn(tokens),
         length: value.length,
         value
     }

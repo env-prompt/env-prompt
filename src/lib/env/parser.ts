@@ -1,4 +1,4 @@
-import { Token, TokenType } from "lib/env/lexer"
+import { getNextColumn, getNextLine, Token, TokenType } from "lib/env/lexer"
 
 enum NodeType {
     literal = 'literal',
@@ -111,7 +111,7 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                 if (isCorrectlyTerminated) continue
             }
             
-            throw new Error('Expected newline or end of document after comment.')
+            throw new Error(`Expected newline or end of document after comment ${getPositionDescription(firstToken)}.`)
         }
 
         const isVariableDeclaration = firstToken.type === TokenType.identifier
@@ -120,7 +120,7 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
 
             const secondToken = tokens[i++]
             const hasAssignmentOperator = secondToken && secondToken.type === TokenType.operator && secondToken.value === '='
-            if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}".`)
+            if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}" ${getPositionDescription(firstToken)}.`)
 
             let value: LiteralNode | QuotedLiteralNode
             for (; i < tokens.length;) {
@@ -148,9 +148,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                     }
 
                     if (isClosingQuote) continue
-
-                    // TODO add line and column
-                    throw new Error(`Unexpected ${token.value} at position ${token.position}.`)
+                    
+                    throw new Error(`Unexpected ${token.value} ${getPositionDescription(firstToken)}.`)
                 }
 
                 if (isLiteral) {
@@ -170,7 +169,7 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                     break
                 }
 
-                throw new Error('Expected line break or comment after variable declaration.')
+                throw new Error(`Expected line break or comment after variable declaration ${getPositionDescription(firstToken)}.`)
             }
 
             const variableDeclaration: VariableDeclarationNode = {
@@ -193,3 +192,5 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
         abstractSyntaxTree: document
     }
 }
+
+const getPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token)}`
