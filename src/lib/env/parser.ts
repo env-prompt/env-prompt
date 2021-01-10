@@ -36,7 +36,7 @@ interface IdentifierNode extends Node {
 
 interface VariableDeclarationNode extends Node {
     identifier: IdentifierNode
-    values: LiteralNode[]
+    value?: LiteralNode
 }
 
 interface CommentNode extends Node {
@@ -122,31 +122,28 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
             const hasAssignmentOperator = secondToken && secondToken.type === TokenType.operator && secondToken.value === '='
             if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}".`)
 
-            const values: LiteralNode[] = []
+            let value: LiteralNode | QuotedLiteralNode
             for (; i < tokens.length;) {
                 const token = tokens[i++]
 
-                const isFirstValue = values.length === 0
                 const isWhitespace = token.type === TokenType.whitespace
                 const isLiteral = token.type === TokenType.literal
                 const isQuote = token.type === TokenType.quote
                 const isNewline = token.type === TokenType.newline
                 const isComment = token.type === TokenType.comment
 
-                if (isFirstValue && isWhitespace) continue
+                if (isWhitespace) continue
 
                 if (isQuote) {
-                    const previousValue = values[values.length - 1]
-                    const isOpeningQuote = isFirstValue || previousValue.type !== NodeType.quotedLiteral
-                    const isClosingQuote = !isFirstValue && previousValue.type === NodeType.quotedLiteral
+                    const isOpeningQuote = !value || value.type !== NodeType.quotedLiteral
+                    const isClosingQuote = value && value.type === NodeType.quotedLiteral
                     
                     if (isOpeningQuote) {
-                        const quotedLiteral: QuotedLiteralNode = {
+                        value = {
                             type: NodeType.quotedLiteral,
                             quoteType: token.value === '"' ? QuoteType.double : QuoteType.single,
                             content: null
                         }
-                        values.push(quotedLiteral)
                         continue
                     }
 
@@ -162,10 +159,9 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                         value: token.value
                     }
 
-                    const previousValue = values[values.length - 1]
-                    const isQuotedLiteral = !isFirstValue && previousValue.type === NodeType.quotedLiteral
-                    if (isQuotedLiteral) (previousValue as QuotedLiteralNode).content = literal
-                    else values.push(literal)
+                    const isQuotedLiteral = value && value.type === NodeType.quotedLiteral
+                    if (isQuotedLiteral) (value as QuotedLiteralNode).content = literal
+                    else value = literal
                     continue
                 }
 
@@ -183,7 +179,7 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                     type: NodeType.identifier,
                     name: variableName
                 },
-                values
+                value
             }
             // TODO throw error if variable already declared... also add option for it
             variablesByName[variableDeclaration.identifier.name] = variableDeclaration
