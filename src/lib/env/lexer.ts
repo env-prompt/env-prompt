@@ -1,12 +1,12 @@
 export enum TokenType {
-    identifier,
-    operator,
-    literal,
-    quote,
-    newline,
-    whitespace,
-    comment,
-    commentBody
+    identifier = 'identifier',
+    operator = 'operator',
+    literal = 'literal',
+    quote = 'quote',
+    newline = 'newline',
+    whitespace = 'whitespace',
+    comment = 'comment',
+    commentBody = 'commentBody'
 }
 
 export interface Token {
@@ -38,10 +38,14 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     const firstChar = src[position]
 
     const isQuotedLiteral = isLastTokenOpeningQuote(tokens)
-    if (!isQuotedLiteral) {
+    const isDoubleQuotedLiteral = isQuotedLiteral && tokens[tokens.length - 1].value === '"'
+
+    if (!isDoubleQuotedLiteral) {
         const isNewline = firstChar === '\n'
         if (isNewline) return makeNewlineToken(position, src, tokens)
+    }
 
+    if (!isQuotedLiteral) {
         const isComment = COMMENT_EXPRESSION.test(firstChar)
         if (isComment) return makeCommentToken(position, src, tokens)
 
