@@ -3,9 +3,9 @@
     "module": "commonjs",
     "lib": [ "es2015" ],
     "target": "es5",
-    "baseUrl": "./",
+    "baseUrl": "src",
     "paths": {
-      "lib/*": ["./src/lib/*"]
+      "lib/*": ["lib/*"]
     },
     "sourceMap": true,
     "allowSyntheticDefaultImports": true,
