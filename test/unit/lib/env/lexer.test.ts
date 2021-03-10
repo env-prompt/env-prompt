@@ -1,5 +1,4 @@
-// import { analyzeEnvSourceCode } from "../../../../src/lib/env/lexer"
-import { analyzeEnvSourceCode } from "lib/env/lexer"
+import { analyzeEnvSourceCode } from "../../../../src/lib/env/lexer"
 
 describe('.env lexer', () => {
     test('that 1 === 1', () => {
