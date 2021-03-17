@@ -71,11 +71,7 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     throw new Error('Unrecognized token.')
 }
 
-export const getNextLine = (token: Token): number => getLine([token])
-
-export const getNextColumn = (token: Token): number => getColumn([token])
-
-const getLine = (tokens: Token[]): number => {
+export const getLine = (tokens: Token[]): number => {
     const isFirstToken = tokens.length === 0
     if (isFirstToken) return 1
 
@@ -85,7 +81,7 @@ const getLine = (tokens: Token[]): number => {
     else return line
 }
 
-const getColumn = (tokens: Token[]): number => {
+export const getColumn = (tokens: Token[]): number => {
     const isFirstToken = tokens.length === 0
     if (isFirstToken) return 1
 

@@ -1,4 +1,4 @@
-import { getNextColumn, getNextLine, Token, TokenType } from "lib/env/lexer"
+import { getColumn, getLine, Token, TokenType } from "lib/env/lexer"
 
 enum NodeType {
     literal = 'literal',
@@ -193,4 +193,6 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
     }
 }
 
+const getNextLine = (token: Token): number => getLine([token])
+const getNextColumn = (token: Token): number => getColumn([token])
 const getPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token)}`
