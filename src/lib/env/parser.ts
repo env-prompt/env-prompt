@@ -53,7 +53,7 @@ interface DocumentNode extends Node {
 
 type VariablesByName = Record<IdentifierNode['name'], VariableDeclarationNode>
 
-interface ParsedEnvDocument {
+export interface ParsedEnvDocument {
     variablesByName: VariablesByName
     abstractSyntaxTree: DocumentNode
 }
@@ -83,8 +83,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
         const isComment = firstToken.type === TokenType.comment
         if (isComment) {
             const secondToken = tokens[i++]
-            const isLastToken = i === tokens.length - 2
-            const isNewline = secondToken.type === TokenType.newline
+            const isLastToken = !secondToken
+            const isNewline = secondToken && secondToken.type === TokenType.newline
 
             const isCommentWithoutBody = isLastToken || isNewline
             if (isCommentWithoutBody) {
@@ -107,7 +107,9 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                 document.statements.push(comment)
 
                 const thirdToken = tokens[i]
-                const isCorrectlyTerminated = thirdToken && thirdToken.type === TokenType.newline
+                const isLastToken = !thirdToken
+                const isNewline = thirdToken && thirdToken.type === TokenType.newline
+                const isCorrectlyTerminated = isLastToken || isNewline
                 if (isCorrectlyTerminated) continue
             }
             
