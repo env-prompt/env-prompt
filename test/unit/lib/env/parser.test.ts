@@ -93,6 +93,28 @@ describe('.env parser', () => {
             } as ParsedEnvDocument
         )
     })
+
+    test('that a comment must be terminated by a newline or end of document', () => {
+        const tokens: Token[] = [
+            {
+                type: TokenType.comment,
+                position: 0,
+                line: 1,
+                column: 1,
+                length: 1,
+                value: '#'
+            },
+            {
+                type: TokenType.comment,
+                position: 1,
+                line: 1,
+                column: 2,
+                length: 1,
+                value: '#'
+            }
+        ]
+        expect(() => parseEnvTokens(tokens)).toThrow('Expected newline or end of document after comment at line 1 column 2.')
+    })
 })
 
 // const foo = analyzeEnvSourceCode('#hello')
