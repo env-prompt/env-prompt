@@ -1,4 +1,4 @@
-import { getNextColumn, getNextLine, Token, TokenType } from "lib/env/lexer"
+import { getColumn, getLine, Token, TokenType } from "lib/env/lexer"
 
 enum NodeType {
     literal = 'literal',
@@ -53,7 +53,7 @@ interface DocumentNode extends Node {
 
 type VariablesByName = Record<IdentifierNode['name'], VariableDeclarationNode>
 
-interface ParsedEnvDocument {
+export interface ParsedEnvDocument {
     variablesByName: VariablesByName
     abstractSyntaxTree: DocumentNode
 }
@@ -68,8 +68,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
     for (let i = 0; i < tokens.length;) {
         const firstToken = tokens[i++]
 
-        const isWhiteSpace = firstToken.type === TokenType.whitespace
-        if (isWhiteSpace) continue
+        const isWhitespace = firstToken.type === TokenType.whitespace
+        if (isWhitespace) continue
 
         const isNewline = firstToken.type === TokenType.newline
         if (isNewline) {
@@ -83,8 +83,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
         const isComment = firstToken.type === TokenType.comment
         if (isComment) {
             const secondToken = tokens[i++]
-            const isLastToken = i === tokens.length - 1
-            const isNewline = secondToken.type === TokenType.newline
+            const isLastToken = !secondToken
+            const isNewline = secondToken && secondToken.type === TokenType.newline
 
             const isCommentWithoutBody = isLastToken || isNewline
             if (isCommentWithoutBody) {
@@ -107,7 +107,9 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                 document.statements.push(comment)
 
                 const thirdToken = tokens[i]
-                const isCorrectlyTerminated = thirdToken && thirdToken.type === TokenType.newline
+                const isLastToken = !thirdToken
+                const isNewline = thirdToken && thirdToken.type === TokenType.newline
+                const isCorrectlyTerminated = isLastToken || isNewline
                 if (isCorrectlyTerminated) continue
             }
             
@@ -118,8 +120,17 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
         if (isVariableDeclaration) {
             const variableName = firstToken.value
 
-            const secondToken = tokens[i++]
-            const hasAssignmentOperator = secondToken && secondToken.type === TokenType.operator && secondToken.value === '='
+            let nextNonWhitespaceToken
+            for (; i < tokens.length;) {
+                const token = tokens[i++]
+                const isWhitespace = token.type === TokenType.whitespace
+                if (!isWhitespace) {
+                    nextNonWhitespaceToken = token
+                    break
+                }
+            }
+
+            const hasAssignmentOperator = nextNonWhitespaceToken && nextNonWhitespaceToken.type === TokenType.operator
             if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}" ${getPositionDescription(firstToken)}.`)
 
             let value: LiteralNode | QuotedLiteralNode
@@ -193,4 +204,6 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
     }
 }
 
+const getNextLine = (token: Token): number => getLine([token])
+const getNextColumn = (token: Token): number => getColumn([token])
 const getPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token)}`

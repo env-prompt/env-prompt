@@ -2,3 +2,4 @@ test/cli/.env
 node_modules
 dist
 .idea
+coverage
