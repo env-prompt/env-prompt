@@ -3,8 +3,6 @@ import { StdIoReader } from "lib/std-io-reader"
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
 const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
-const fgGreen = (message: string): string => `\x1b[32m${message}\x1b[0m`
-const bold = (message: string): string => `\x1b[1m${message}\x1b[0m`
 const buildQuestion = (name: string, defaultValue: string): string => {
     const hasDefaultValue = defaultValue.trim().length > 0
     const defaultValueNote = hasDefaultValue ? ` (${fgYellow(defaultValue)})` : ''
@@ -12,7 +10,7 @@ const buildQuestion = (name: string, defaultValue: string): string => {
     return `${bgCyan(name)}${defaultValueNote}: `
 }
 
-interface EnvironmentVariable {
+export interface EnvironmentVariable {
     name: string
     value: string
 }
@@ -30,6 +28,7 @@ export const makeCliPrompter = (console: Console, stdIoReader: StdIoReader): Cli
 
     promptUserForEnvironmentVariable: async ({ name, value: defaultValue }) => {
         const question: string = buildQuestion(name, defaultValue)
+        // TODO maybe trim inputValue before returning it
         const inputValue: string = await stdIoReader.promptUser(question)
         const blankValueProvided = inputValue.trim().length === 0
         const value = blankValueProvided ? defaultValue : inputValue
