@@ -68,8 +68,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
     for (let i = 0; i < tokens.length;) {
         const firstToken = tokens[i++]
 
-        const isWhiteSpace = firstToken.type === TokenType.whitespace
-        if (isWhiteSpace) continue
+        const isWhitespace = firstToken.type === TokenType.whitespace
+        if (isWhitespace) continue
 
         const isNewline = firstToken.type === TokenType.newline
         if (isNewline) {
@@ -120,8 +120,17 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
         if (isVariableDeclaration) {
             const variableName = firstToken.value
 
-            const secondToken = tokens[i++]
-            const hasAssignmentOperator = secondToken && secondToken.type === TokenType.operator && secondToken.value === '='
+            let nextNonWhitespaceToken
+            for (; i < tokens.length;) {
+                const token = tokens[i++]
+                const isWhitespace = token.type === TokenType.whitespace
+                if (!isWhitespace) {
+                    nextNonWhitespaceToken = token
+                    break
+                }
+            }
+
+            const hasAssignmentOperator = nextNonWhitespaceToken && nextNonWhitespaceToken.type === TokenType.operator
             if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}" ${getPositionDescription(firstToken)}.`)
 
             let value: LiteralNode | QuotedLiteralNode
