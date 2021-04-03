@@ -1,6 +1,6 @@
 import { getColumn, getLine, Token, TokenType } from "lib/env/lexer"
 
-enum NodeType {
+export enum NodeType {
     literal = 'literal',
     quotedLiteral = 'quotedLiteral',
     identifier = 'identifier',
@@ -10,44 +10,44 @@ enum NodeType {
     document = 'document'
 }
 
-enum QuoteType {
+export enum QuoteType {
     single = '\'',
     double = '"'
 }
 
-interface Node {
+export interface Node {
     type: NodeType
 }
 
-interface RawLiteralNode extends Node {
+export interface RawLiteralNode extends Node {
     value: string
 }
 
-interface QuotedLiteralNode extends Node {
+export interface QuotedLiteralNode extends Node {
     quoteType: QuoteType
     content: RawLiteralNode|null
 }
 
-type LiteralNode = RawLiteralNode | QuotedLiteralNode
+export type LiteralNode = RawLiteralNode | QuotedLiteralNode
 
-interface IdentifierNode extends Node {
+export interface IdentifierNode extends Node {
     name: string
 }
 
-interface VariableDeclarationNode extends Node {
+export interface VariableDeclarationNode extends Node {
     identifier: IdentifierNode
     value?: LiteralNode
 }
 
-interface CommentNode extends Node {
+export interface CommentNode extends Node {
     body: string|null
 }
 
-interface NewlineNode extends Node {}
+export interface NewlineNode extends Node {}
 
-type StatementNode = NewlineNode | CommentNode | VariableDeclarationNode
+export type StatementNode = NewlineNode | CommentNode | VariableDeclarationNode
 
-interface DocumentNode extends Node {
+export interface DocumentNode extends Node {
     statements: StatementNode[]
 }
 
