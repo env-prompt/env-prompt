@@ -58,6 +58,7 @@ export interface ParsedEnvDocument {
     abstractSyntaxTree: DocumentNode
 }
 
+export type ParseEnvTokens = typeof parseEnvTokens
 export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
     const document: DocumentNode = {
         type: NodeType.document,

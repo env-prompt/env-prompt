@@ -24,6 +24,7 @@ const COMMENT_EXPRESSION = /^#$/
 const IDENTIFIER_START_EXPRESSION = /^[a-zA-Z]$/
 const IDENTIFIER_END_EXPRESSION = /^[^a-zA-Z0-9_-]$/
 
+export type AnalyzeEnvSourceCode = typeof analyzeEnvSourceCode
 export const analyzeEnvSourceCode = (src: string): Token[] => {
     const tokens: Token[] = []
     for (let i = 0; i < src.length;) {

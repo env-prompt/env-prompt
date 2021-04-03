@@ -3,13 +3,13 @@ import {
   StatementNode,
   NodeType,
   VariableDeclarationNode,
-  IdentifierNode,
   LiteralNode,
   RawLiteralNode,
   QuotedLiteralNode,
   CommentNode,
 } from "lib/env/parser";
 
+export type Render = typeof render
 export const render = (abstractSyntaxTree: DocumentNode): string =>
   abstractSyntaxTree.statements.map(renderStatement).join("");
 
@@ -28,27 +28,27 @@ const renderVariableDeclaration = ({
   identifier,
   value,
 }: VariableDeclarationNode): string =>
-  `${renderIdentifier(identifier)}=${renderLiteral(value)}`;
-
-const renderIdentifier = ({ name }: IdentifierNode): string => name;
+  `${identifier.name}=${renderLiteral(value)}`;
 
 const renderLiteral = (literal?: LiteralNode): string => {
   const isEmpty = !literal;
   if (isEmpty) return "";
 
   const isRawLiteral = literal.type === NodeType.literal;
-  if (isRawLiteral) return renderRawLiteral(literal as RawLiteralNode);
+  if (isRawLiteral) return (literal as RawLiteralNode).value
 
   return renderQuotedLiteral(literal as QuotedLiteralNode);
 };
 
-const renderRawLiteral = ({ value }: RawLiteralNode): string => value;
-
 const renderQuotedLiteral = ({
   quoteType,
   content,
-}: QuotedLiteralNode): string =>
-  `${quoteType}${renderRawLiteral(content)}${quoteType}`;
+}: QuotedLiteralNode): string => {
+    const isEmpty = !content
+    const value = isEmpty ? '' : content.value
+
+    return `${quoteType}${value}${quoteType}`;
+}
 
 const renderComment = ({ body }: CommentNode): string =>
   `#${!!body ? body : ""}`;
