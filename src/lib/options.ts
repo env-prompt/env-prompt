@@ -1,79 +1,86 @@
+type RawArgument = string
 type ArgumentName = string
 type ArgumentValue = string | boolean
-
-type RawArgument = string
-type ParsedArgument = [ArgumentName, ArgumentValue]
-type ParsedArgumentMap = Record<ArgumentName, ArgumentValue>
+type Argument = [ArgumentName, ArgumentValue]
+type ArgumentMap = Record<ArgumentName, ArgumentValue>
 
 export interface Options {
     distFilePath: string
     localFilePath: string
+    prompts: boolean
 }
-type OptionName = keyof Options
-type OptionValue = Options[OptionName]
-type Option = [OptionName, OptionValue]
-
-type OptionNameByArgumentName = Record<ArgumentName, OptionName>
 
 const defaultOptions: Options = {
     distFilePath: '.env.dist',
-    localFilePath: '.env'
+    localFilePath: '.env',
+    prompts: true
 }
 
-namespace ArgumentNames {
-    export const distFilePathShorthand: ArgumentName = '-d'
-    export const distFilePath: ArgumentName = '--distFile'
-    export const localFilePathShorthand: ArgumentName = '-l'
-    export const localFilePath: ArgumentName = '--localFile'
+export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options => {
+    const argumentMap = parseArguments(rawArguments)
+    const options: Options = { ...defaultOptions }
+
+    const argumentList = Object.entries(argumentMap)
+    argumentList.forEach((argument) => mapArgumentToOptions(argument, options))
+
+    return options
 }
 
-const optionNameByArgumentName: OptionNameByArgumentName = {
-    [ArgumentNames.distFilePathShorthand]: 'distFilePath',
-    [ArgumentNames.distFilePath]: 'distFilePath',
-    [ArgumentNames.localFilePathShorthand]: 'localFilePath',
-    [ArgumentNames.localFilePath]: 'localFilePath',
+const mapArgumentToOptions = ([name, value]: Argument, options: Options) => {
+    const isDistFilePath = name === '-d' || name === '--distFile'
+    if (isDistFilePath) {
+        options.distFilePath = String(value)
+        return
+    }
+
+    const isLocalFilePath = name === '-l' || name === '--localFile'
+    if (isLocalFilePath) {
+        options.localFilePath = String(value)
+        return
+    }
+
+    const isPrompts = name === '--prompts'
+    if (isPrompts) {
+        options.prompts = getBooleanFromArgumentValue(value)
+        return
+    }
 }
 
-const isArgumentName = (value: RawArgument): boolean => /^--?\w+$/.test(value)
+const argumentNameAndInlineValueExpression = /^(--?\w+)(?:=(.*))?/
+const isArgumentName = (value: RawArgument): boolean => argumentNameAndInlineValueExpression.test(value)
+const getArgumentNameAndInlineValue = (rawArgument: string): [string, string?] => {
+    const [_, name, inlineValue] = argumentNameAndInlineValueExpression.exec(rawArgument)
+    return [name, inlineValue]
+}
 
-const isFlag = (value: ArgumentValue): boolean => typeof value === 'boolean'
+const getArgumentNameAndValue = (rawArguments: RawArgument[], i: number): Argument => {
+    const rawArgument = rawArguments[i]
+    const [name, inlineValue] = getArgumentNameAndInlineValue(rawArgument)
 
-const getArgumentValue = (argumentNameIndex: number, rawArguments: RawArgument[]): ArgumentValue => {
-    const valueIndex = argumentNameIndex + 1
+    const hasInlineValue = typeof inlineValue !== 'undefined'
+    if (hasInlineValue) return [name, inlineValue]
+    
+    const valueIndex = i + 1
     const value = rawArguments[valueIndex]
 
     const isEndOfRawArguments = rawArguments.length === valueIndex
     const isValueAnArgumentName = isArgumentName(value)
-    const useFlagForArgumentValue = isEndOfRawArguments || isValueAnArgumentName
+    if (isEndOfRawArguments || isValueAnArgumentName) return [name, true]
 
-    return useFlagForArgumentValue ? true : value
+    return [name, value]
 }
 
-const parseArguments = (rawArguments: RawArgument[]): ParsedArgumentMap => {
-    const parsedArgumentMap: ParsedArgumentMap = {}
+const parseArguments = (rawArguments: RawArgument[]): ArgumentMap => {
+    const argumentMap: ArgumentMap = {}
     rawArguments
-        .forEach((argumentName: RawArgument, argumentNameIndex: number) => {
-            if (isArgumentName(argumentName)) {
-                parsedArgumentMap[argumentName] = getArgumentValue(argumentNameIndex, rawArguments)
-            }
+        .forEach((rawArgument: RawArgument, i: number) => {
+            if (!isArgumentName(rawArgument)) return
+            
+            const [argumentName, argumentValue] = getArgumentNameAndValue(rawArguments, i)
+            argumentMap[argumentName] = argumentValue
         })
 
-    return parsedArgumentMap
+    return argumentMap
 }
 
-export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options => {
-    const parsedArgumentMap = parseArguments(rawArguments)
-    const options: Options = { ...defaultOptions }
-
-    Object
-        .entries(parsedArgumentMap)
-        .filter(([argumentName, argumentValue]: ParsedArgument) =>
-            !isFlag(argumentValue) && argumentName in optionNameByArgumentName
-        )
-        .forEach(([argumentName, argumentValue]: ParsedArgument) => {
-            const optionName = optionNameByArgumentName[argumentName]
-            options[optionName] = argumentValue as string
-        })
-
-    return options
-}
+const getBooleanFromArgumentValue = (value: ArgumentValue): boolean => value === 'false' ? false : true

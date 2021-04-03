@@ -7,7 +7,7 @@ describe("options", () => {
             '/home/bkotos/Projects/env-prompt/dist/index.js'
         ]
         const options = getOptionsFromRawArguments(argv)
-        expect(options).toEqual({distFilePath: '.env.dist', localFilePath: '.env'})
+        expect(options).toEqual({distFilePath: '.env.dist', localFilePath: '.env', prompts: true})
     });
 
     test('that the localFilePath option can be overridden with -l', () => {
@@ -18,7 +18,7 @@ describe("options", () => {
             'prod.env'
         ]
         const options = getOptionsFromRawArguments(argv)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'prod.env' })
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'prod.env', prompts: true })
     });
 
     test('that the localFilePath option can be overridden with --localFile', () => {
@@ -29,7 +29,7 @@ describe("options", () => {
             'dev.env'
         ]
         const options = getOptionsFromRawArguments(argv)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'dev.env' })
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'dev.env', prompts: true })
     });
 
     test('that the distFilePath option can be overridden with --distFile', () => {
@@ -40,7 +40,7 @@ describe("options", () => {
             'common.env'
         ]
         const options = getOptionsFromRawArguments(argv)
-        expect(options).toEqual({ distFilePath: 'common.env', localFilePath: '.env' })
+        expect(options).toEqual({ distFilePath: 'common.env', localFilePath: '.env', prompts: true })
     });
 
     test('that the distFilePath option can be overridden with --distFile', () => {
@@ -51,6 +51,36 @@ describe("options", () => {
             'shared.env'
         ]
         const options = getOptionsFromRawArguments(argv)
-        expect(options).toEqual({ distFilePath: 'shared.env', localFilePath: '.env' })
+        expect(options).toEqual({ distFilePath: 'shared.env', localFilePath: '.env', prompts: true })
+    });
+
+    test('that --prompts sets the prompts option to true', () => {
+        const argv = [
+            '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+            '/home/bkotos/Projects/env-prompt/dist/index.js',
+            '--prompts'
+        ]
+        const options = getOptionsFromRawArguments(argv)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true })
+    });
+
+    test('that --prompts=true sets the prompts option to true', () => {
+        const argv = [
+            '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+            '/home/bkotos/Projects/env-prompt/dist/index.js',
+            '--prompts=true'
+        ]
+        const options = getOptionsFromRawArguments(argv)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true })
+    });
+
+    test('that --prompts=false sets the prompts option to false', () => {
+        const argv = [
+            '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+            '/home/bkotos/Projects/env-prompt/dist/index.js',
+            '--prompts=false'
+        ]
+        const options = getOptionsFromRawArguments(argv)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false })
     });
 });
