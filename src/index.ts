@@ -1,6 +1,6 @@
 import readline from "readline"
 import fs from "fs"
-import { getOptionsFromRawArguments } from "lib/options"
+import { getOptionsFromEnvironment } from "lib/options"
 import { makeStdIoReader } from "lib/std-io-reader"
 import { makeCliPrompter } from "lib/cli"
 import { analyzeEnvSourceCode } from "lib/env/lexer"
@@ -14,7 +14,7 @@ const merge = makeMerge(cliPrompter, analyzeEnvSourceCode, parseEnvTokens, rende
 
 const main = async () => {
     try {
-        const options = getOptionsFromRawArguments(process.argv)
+        const options = getOptionsFromEnvironment(process.argv, process.env)
         await merge(options)
     } catch (e) {
         cliPrompter.printError(e)

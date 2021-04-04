@@ -30,7 +30,7 @@ export const makeMerge = (
   const merge = async (options: Options) => {
     const distDocument = parseDistDocument(options);
     const localDocument = parseLocalDocument(options);
-    const mergedDocument = await mergeDocuments(distDocument, localDocument);
+    const mergedDocument = await mergeDocuments(distDocument, localDocument, options);
 
     writeLocalEnvFile(options, mergedDocument);
   };
@@ -61,11 +61,11 @@ export const makeMerge = (
 
   const mergeDocuments = async (
     distributedDocument: ParsedEnvDocument,
-    localDocument: ParsedEnvDocument
+    localDocument: ParsedEnvDocument,
+    options: Options
   ): Promise<ParsedEnvDocument> => {
     const newLocalDocument: ParsedEnvDocument = { ...localDocument };
 
-    // TODO add environment check thing
     let hasBeenPrompted = false;
 
     const variableNames = Object.keys(distributedDocument.variablesByName);
@@ -73,17 +73,23 @@ export const makeMerge = (
       const existsLocally = name in localDocument.variablesByName;
       if (existsLocally) continue;
 
-      if (!hasBeenPrompted) {
+      if (!hasBeenPrompted && options.prompts) {
         cliPrompter.promptUserAboutNewVariables();
         hasBeenPrompted = true;
       }
 
       const distributedVariable = distributedDocument.variablesByName[name];
       const defaultValue = getValueFromVariable(distributedVariable);
-      const { value } = await cliPrompter.promptUserForEnvironmentVariable({
-        name,
-        value: defaultValue,
-      });
+
+      let value = defaultValue
+      if (options.prompts) {
+        const userInputEnvironmentVariable = await cliPrompter.promptUserForEnvironmentVariable({
+          name,
+          value: defaultValue,
+        });
+        value = userInputEnvironmentVariable.value
+      }
+      
       const variable = createVariableDeclaration(name, value);
       addVariableToDocument(variable, newLocalDocument);
     }

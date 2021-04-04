@@ -3,6 +3,7 @@ type ArgumentName = string
 type ArgumentValue = string | boolean
 type Argument = [ArgumentName, ArgumentValue]
 type ArgumentMap = Record<ArgumentName, ArgumentValue>
+type ProcessEnvVariable = [keyof NodeJS.ProcessEnv, NodeJS.ProcessEnv[keyof NodeJS.ProcessEnv]]
 
 export interface Options {
     distFilePath: string
@@ -16,17 +17,23 @@ const defaultOptions: Options = {
     prompts: true
 }
 
-export const getOptionsFromRawArguments = (rawArguments: RawArgument[]): Options => {
-    const argumentMap = parseArguments(rawArguments)
-    const options: Options = { ...defaultOptions }
+export const getOptionsFromEnvironment = (cliArguments: RawArgument[], processEnv: NodeJS.ProcessEnv): Options => {
+    const argumentMap = parseArguments(cliArguments)
 
+    const cliOptions: Partial<Options> = {}
     const argumentList = Object.entries(argumentMap)
-    argumentList.forEach((argument) => mapArgumentToOptions(argument, options))
+    argumentList.forEach((argument) => mapArgumentToOptions(argument, cliOptions))
 
-    return options
+    const processEnvOptions: Partial<Options> = {}
+    const processEnvVariableList = Object.entries(processEnv)
+    processEnvVariableList.forEach(
+        (variable) => mapProcessEnvVariableToOptions(variable, processEnvOptions)
+    )
+
+    return { ...defaultOptions, ...processEnvOptions, ...cliOptions }
 }
 
-const mapArgumentToOptions = ([name, value]: Argument, options: Options) => {
+const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>) => {
     const isDistFilePath = name === '-d' || name === '--distFile'
     if (isDistFilePath) {
         options.distFilePath = String(value)
@@ -44,6 +51,11 @@ const mapArgumentToOptions = ([name, value]: Argument, options: Options) => {
         options.prompts = getBooleanFromArgumentValue(value)
         return
     }
+}
+
+const mapProcessEnvVariableToOptions = ([name, value]: ProcessEnvVariable, options: Partial<Options>) => {
+    const isContinuousIntegration = name === 'CI' && value === 'true'
+    if (isContinuousIntegration) options.prompts = false
 }
 
 const argumentNameAndInlineValueExpression = /^(--?\w+)(?:=(.*))?/
