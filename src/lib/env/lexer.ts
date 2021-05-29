@@ -1,3 +1,5 @@
+import { QuoteType } from "lib/env/parser"
+
 export enum TokenType {
     identifier = 'identifier',
     operator = 'operator',
@@ -24,6 +26,7 @@ const COMMENT_EXPRESSION = /^#$/
 const IDENTIFIER_START_EXPRESSION = /^[a-zA-Z]$/
 const IDENTIFIER_END_EXPRESSION = /^[^a-zA-Z0-9_-]$/
 
+export type AnalyzeEnvSourceCode = typeof analyzeEnvSourceCode
 export const analyzeEnvSourceCode = (src: string): Token[] => {
     const tokens: Token[] = []
     for (let i = 0; i < src.length;) {
@@ -37,8 +40,9 @@ export const analyzeEnvSourceCode = (src: string): Token[] => {
 const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Token => {
     const firstChar = src[position]
 
-    const isQuotedLiteral = isLastTokenOpeningQuote(tokens)
-    const isDoubleQuotedLiteral = isQuotedLiteral && tokens[tokens.length - 1].value === '"'
+    const [previousToken, secondPreviousToken] = getPreviousTwoNonWhitespaceTokens(tokens)
+    const isQuotedLiteral = isInsideQuotes(previousToken, secondPreviousToken)
+    const isDoubleQuotedLiteral = isQuotedLiteral && previousToken.value === QuoteType.double
 
     if (!isDoubleQuotedLiteral) {
         const isNewline = firstChar === '\n'
@@ -56,6 +60,7 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
         if (isWhiteSpace) return makeWhiteSpaceToken(position, src, tokens)
 
         const isQuote = QUOTE_EXPRESSION.test(firstChar)
+        // TODO escaped quotes?
         if (isQuote) return makeQuoteToken(position, src, tokens)
 
         const isOperator = OPERATOR_EXPRESSION.test(firstChar)
@@ -158,11 +163,29 @@ const makeOperatorToken = (position: number, src: string, tokens: Token[]): Toke
     value: src[position]
 })
 
+const isInsideQuotes = (previousToken?: Token, secondPreviousToken?: Token): boolean => {
+    if (!previousToken || !secondPreviousToken) return false
+
+    const hasOpeningQuote = previousToken.type === TokenType.quote
+    const isSecondPreviousTokenQuote = secondPreviousToken.type === TokenType.quote
+    const isSecondPreviousTokenLiteral = secondPreviousToken.type === TokenType.literal
+    const hasTerminatingQuote = isSecondPreviousTokenQuote || isSecondPreviousTokenLiteral
+
+    return hasOpeningQuote && !hasTerminatingQuote
+}
+
 const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token => {
     let i = position
     let value = src[i++]
-    const previousToken = getLastNonWhiteSpaceToken(tokens)
+
+    const [previousToken] = getPreviousTwoNonWhitespaceTokens(tokens)
     const isQuotedValue = previousToken.type === TokenType.quote
+    const firstChar = value
+    const isClosingQuote = firstChar === previousToken?.value
+    const isEmptyQuotedValue = isQuotedValue && isClosingQuote
+
+    if (isEmptyQuotedValue) return makeQuoteToken(position, src, tokens)
+
     for (; i < src.length; i++) {
         const char = src[i]
         const isClosingQuote = char === previousToken.value
@@ -216,15 +239,24 @@ const makeIdentifierToken = (position: number, src: string, tokens: Token[]): To
     }
 }
 
-const getLastNonWhiteSpaceToken = (previousTokens: Token[]): Token | null => {
-    for (let i = previousTokens.length - 1; i >= 0; i--) {
-        const token = previousTokens[i]
+const getPreviousTwoNonWhitespaceTokens = (tokens: Token[]): [Token?, Token?] => {
+    let previousToken: Token = null
+    let secondPreviousToken: Token = null
+
+    for (let i = tokens.length - 1; i >= 0; i--) {
+        const token = tokens[i]
         const isWhiteSpace = token.type === TokenType.whitespace
         if (!isWhiteSpace) {
-            return token
+            const hasPreviousToken = !!previousToken
+            if (hasPreviousToken) {
+                secondPreviousToken = token
+                break
+            }
+            previousToken = token
         }
     }
-    return null
+
+    return [previousToken, secondPreviousToken]
 }
 
 const hasAssignmentOperatorOnCurrentLine = (previousTokens: Token[]): boolean => {
@@ -247,11 +279,3 @@ const hasAssignmentOperatorOnCurrentLine = (previousTokens: Token[]): boolean =>
 
 const isLastTokenComment = (previousTokens: Token[]): boolean =>
     previousTokens.length > 0 && previousTokens[previousTokens.length - 1].type === TokenType.comment
-
-const isLastTokenOpeningQuote = (previousTokens: Token[]): boolean => {
-    const isLastTokenQuote =
-        previousTokens.length > 0 && previousTokens[previousTokens.length - 1].type === TokenType.quote
-    const isSecondToLastTokenLiteral =
-        previousTokens.length > 1 && previousTokens[previousTokens.length - 2].type === TokenType.literal
-    return isLastTokenQuote && !isSecondToLastTokenLiteral
-}
