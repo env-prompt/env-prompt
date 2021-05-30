@@ -7,6 +7,7 @@ import {
   RawLiteralNode,
   QuotedLiteralNode,
   CommentNode,
+  QuoteType,
 } from "lib/env/parser";
 
 export type Render = typeof render
@@ -46,8 +47,16 @@ const renderQuotedLiteral = ({
 }: QuotedLiteralNode): string => {
     const isEmpty = !content
     const value = isEmpty ? '' : content.value
+    const escapedValue = escapeQuotes(quoteType, value)
 
-    return `${quoteType}${value}${quoteType}`;
+    return `${quoteType}${escapedValue}${quoteType}`;
+}
+
+const escapeQuotes = (quoteType: QuoteType, content: string): string => {
+  const isDoubleQuotes = quoteType === QuoteType.double
+  if (isDoubleQuotes) return content.replace(/"/g, '\\"')
+
+  return content.replace(/'/g, "\\'")
 }
 
 const renderComment = ({ body }: CommentNode): string =>
