@@ -60,7 +60,6 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
         if (isWhiteSpace) return makeWhiteSpaceToken(position, src, tokens)
 
         const isQuote = QUOTE_EXPRESSION.test(firstChar)
-        // TODO escaped quotes?
         if (isQuote) return makeQuoteToken(position, src, tokens)
 
         const isOperator = OPERATOR_EXPRESSION.test(firstChar)
@@ -192,7 +191,10 @@ const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token
         const isNewline = char === '\n'
         const isComment = char === '#'
 
-        if (isQuotedValue && isClosingQuote) break
+        const previousChar = src[i - 1]
+        const isEscaped = previousChar === '\\'
+
+        if (isQuotedValue && isClosingQuote && !isEscaped) break
         if (isNewline && !isQuotedValue) break
         if (isComment && !isQuotedValue) break
 

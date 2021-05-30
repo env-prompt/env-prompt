@@ -406,4 +406,100 @@ fullDoubleQuoted="some other stuff"
       ] as Token[])
     })
   })
+
+  test('that quotes in literals can be escaped', () => {
+    const envFile = `escapedDouble="this has \\"escaped\\" dobule quotes"
+escapedSingle='this has \\'escaped\\' single quotes'`
+    const tokens = analyzeEnvSourceCode(envFile)
+    expect(tokens).toEqual([
+      {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 13,
+        value: "escapedDouble",
+      },
+      {
+        type: TokenType.operator,
+        position: 13,
+        line: 1,
+        column: 14,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.quote,
+        position: 14,
+        line: 1,
+        column: 15,
+        length: 1,
+        value: "\"",
+      },
+      {
+        type: TokenType.literal,
+        position: 15,
+        line: 1,
+        column: 16,
+        length: 34,
+        value: `this has \\"escaped\\" dobule quotes`,
+      },
+      {
+        type: TokenType.quote,
+        position: 49,
+        line: 1,
+        column: 50,
+        length: 1,
+        value: "\"",
+      },
+      {
+        type: TokenType.newline,
+        position: 50,
+        line: 1,
+        column: 51,
+        length: 1,
+        value: "\n",
+      },
+      {
+        type: TokenType.identifier,
+        position: 51,
+        line: 2,
+        column: 1,
+        length: 13,
+        value: "escapedSingle",
+      },
+      {
+        type: TokenType.operator,
+        position: 64,
+        line: 2,
+        column: 14,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.quote,
+        position: 65,
+        line: 2,
+        column: 15,
+        length: 1,
+        value: "'",
+      },
+      {
+        type: TokenType.literal,
+        position: 66,
+        line: 2,
+        column: 16,
+        length: 34,
+        value: "this has \\'escaped\\' single quotes",
+      },
+      {
+        type: TokenType.quote,
+        position: 100,
+        line: 2,
+        column: 50,
+        length: 1,
+        value: "'",
+      },
+    ] as Token[])
+  })
 })
