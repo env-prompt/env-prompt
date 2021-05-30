@@ -15,7 +15,7 @@ import { Render } from "lib/env/renderer";
 import fs from "fs";
 import { Options } from "lib/options";
 
-type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
+export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
 
 export type Merge = ReturnType<typeof makeMerge>;
 export const makeMerge = (
