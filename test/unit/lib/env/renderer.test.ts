@@ -117,4 +117,37 @@ describe(".env renderer", () => {
     const document = render(abstractSyntaxTree);
     expect(document).toEqual("");
   });
+
+  test("that escaped double quotes are properly rendered", () => {
+    const abstractSyntaxTree: DocumentNode = {
+      type: NodeType.document,
+      statements: [
+        {
+          type: NodeType.variableDeclaration,
+          identifier: { type: NodeType.identifier, name: "nestedSingle" },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.single,
+            content: { type: NodeType.identifier, value: "some 'nested' single quotes" },
+          },
+        },
+        {
+          type: NodeType.newline,
+        },
+        {
+          type: NodeType.variableDeclaration,
+          identifier: { type: NodeType.identifier, name: "nestedDouble" },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.double,
+            content: { type: NodeType.identifier, value: `some "nested" double quotes` },
+          },
+        },
+      ],
+    };
+    const document = render(abstractSyntaxTree);
+    expect(document).toEqual(
+`nestedSingle='some \\'nested\\' single quotes'
+nestedDouble="some \\"nested\\" double quotes"`);
+  });
 });
