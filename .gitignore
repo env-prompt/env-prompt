@@ -1,5 +1,7 @@
-.env
-.env.dist
+test/cli/.env
 node_modules
 dist
 .idea
+coverage
+*.env*
+
