@@ -116,6 +116,48 @@ describe("options", () => {
         expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, newlineType: NewlineType.unix } as Options)
     });
 
+    test('that -p sets the prompts option to true', () => {
+        const process: ProcessDependencies = {
+            argv: [
+                '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+                '/home/bkotos/Projects/env-prompt/dist/index.js',
+                '-p'
+            ],
+            env: {},
+            platform: 'linux'
+        }
+        const options = getOptionsFromEnvironment(process)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+    });
+
+    test('that -p=true sets the prompts option to true', () => {
+        const process: ProcessDependencies = {
+            argv: [
+                '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+                '/home/bkotos/Projects/env-prompt/dist/index.js',
+                '-p=true'
+            ],
+            env: {},
+            platform: 'linux'
+        }
+        const options = getOptionsFromEnvironment(process)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+    });
+
+    test('that -p=false sets the prompts option to false', () => {
+        const process: ProcessDependencies = {
+            argv: [
+                '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+                '/home/bkotos/Projects/env-prompt/dist/index.js',
+                '-p=false'
+            ],
+            env: {},
+            platform: 'linux'
+        }
+        const options = getOptionsFromEnvironment(process)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, newlineType: NewlineType.unix } as Options)
+    });
+
     test('that CI=false in process.env sets the prompts option to true', () => {
         const process: ProcessDependencies = {
             argv: [

@@ -58,7 +58,7 @@ const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>
         return
     }
 
-    const isPrompts = name === '--prompts'
+    const isPrompts = name === '-p' || name === '--prompts'
     if (isPrompts) {
         options.prompts = getBooleanFromArgumentValue(value)
         return
