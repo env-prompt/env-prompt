@@ -45,7 +45,7 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     const isDoubleQuotedLiteral = isQuotedLiteral && previousToken.value === QuoteType.double
 
     if (!isDoubleQuotedLiteral) {
-        const isNewline = firstChar === '\n'
+        const isNewline = firstChar === '\n' || firstChar === '\r'
         if (isNewline) return makeNewlineToken(position, src, tokens)
     }
 
@@ -95,14 +95,33 @@ export const getColumn = (tokens: Token[]): number => {
     else return column + length
 }
 
-const makeNewlineToken = (position: number, src: string, tokens: Token[]): Token => ({
-    type: TokenType.newline,
-    position,
-    line: getLine(tokens),
-    column: getColumn(tokens),
-    length: 1,
-    value: src[position]
-})
+const makeNewlineToken = (position: number, src: string, tokens: Token[]): Token => {
+    const baseToken: Omit<Token, 'length' | 'value'> = {
+        type: TokenType.newline,
+        position,
+        line: getLine(tokens),
+        column: getColumn(tokens)
+    }
+
+    const char = src[position]
+    const isCr = char === '\r'
+    if (isCr) {
+        const nextChar = src[position + 1]
+        const isCrLf = nextChar === '\n'
+        const value = isCrLf ? '\r\n' : '\r'
+        return {
+            ...baseToken,
+            length: value.length,
+            value
+        }
+    }
+
+    return {
+        ...baseToken,
+        length: 1,
+        value: '\n'
+    }
+}
 
 const makeCommentToken = (position: number, src: string, tokens: Token[]): Token => ({
     type: TokenType.comment,
@@ -118,10 +137,9 @@ const makeCommentBodyToken = (position: number, src: string, tokens: Token[]): T
     let value = src[i++]
     for (; i < src.length; i++) {
         const char = src[i]
-        const isNewline = char === '\n'
-        if (isNewline) {
-            break
-        }
+        
+        const isNewline = char === '\n' || char === '\r'
+        if (isNewline) break
 
         value = `${value}${char}`
     }
@@ -187,15 +205,16 @@ const makeLiteralToken = (position: number, src: string, tokens: Token[]): Token
 
     for (; i < src.length; i++) {
         const char = src[i]
-        const isClosingQuote = char === previousToken.value
-        const isNewline = char === '\n'
-        const isComment = char === '#'
-
         const previousChar = src[i - 1]
-        const isEscaped = previousChar === '\\'
 
+        const isClosingQuote = char === previousToken.value
+        const isEscaped = previousChar === '\\'
         if (isQuotedValue && isClosingQuote && !isEscaped) break
+
+        const isNewline = char === '\n' || char === '\r'
         if (isNewline && !isQuotedValue) break
+
+        const isComment = char === '#'
         if (isComment && !isQuotedValue) break
 
         value = `${value}${char}`

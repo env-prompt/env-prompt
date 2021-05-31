@@ -502,4 +502,132 @@ escapedSingle='this has \\'escaped\\' single quotes'`
       },
     ] as Token[])
   })
+
+  test('that windows CRLF newlines can be used', () => {
+    const envFile = '# some comment\r\n'
+      + 'some=value\r\n'
+    const tokens = analyzeEnvSourceCode(envFile)
+    expect(tokens).toEqual([
+      {
+        type: TokenType.comment,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 1,
+        value: "#",
+      },
+      {
+        type: TokenType.commentBody,
+        position: 1,
+        line: 1,
+        column: 2,
+        length: 13,
+        value: " some comment",
+      },
+      {
+        type: TokenType.newline,
+        position: 14,
+        line: 1,
+        column: 15,
+        length: 2,
+        value: "\r\n",
+      },
+      {
+        type: TokenType.identifier,
+        position: 16,
+        line: 2,
+        column: 1,
+        length: 4,
+        value: "some",
+      },
+      {
+        type: TokenType.operator,
+        position: 20,
+        line: 2,
+        column: 5,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.literal,
+        position: 21,
+        line: 2,
+        column: 6,
+        length: 5,
+        value: "value",
+      },
+      {
+        type: TokenType.newline,
+        position: 26,
+        line: 2,
+        column: 11,
+        length: 2,
+        value: "\r\n",
+      },
+    ] as Token[])
+  })
+
+  test('that CR newlines can be used', () => {
+    const envFile = '# some comment\r'
+      + 'some=value\r'
+    const tokens = analyzeEnvSourceCode(envFile)
+    expect(tokens).toEqual([
+      {
+        type: TokenType.comment,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 1,
+        value: "#",
+      },
+      {
+        type: TokenType.commentBody,
+        position: 1,
+        line: 1,
+        column: 2,
+        length: 13,
+        value: " some comment",
+      },
+      {
+        type: TokenType.newline,
+        position: 14,
+        line: 1,
+        column: 15,
+        length: 1,
+        value: "\r",
+      },
+      {
+        type: TokenType.identifier,
+        position: 15,
+        line: 2,
+        column: 1,
+        length: 4,
+        value: "some",
+      },
+      {
+        type: TokenType.operator,
+        position: 19,
+        line: 2,
+        column: 5,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.literal,
+        position: 20,
+        line: 2,
+        column: 6,
+        length: 5,
+        value: "value",
+      },
+      {
+        type: TokenType.newline,
+        position: 25,
+        line: 2,
+        column: 11,
+        length: 1,
+        value: "\r",
+      },
+    ] as Token[])
+  })
 })
