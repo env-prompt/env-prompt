@@ -52,11 +52,11 @@ export const makeMerge = (
   };
 
   const writeLocalEnvFile = (
-    { localFilePath: path }: Options,
+    options: Options,
     document: ParsedEnvDocument
   ) => {
-    const fileContent = render(document.abstractSyntaxTree);
-    fs.writeFileSync(path, fileContent, { encoding: ENCODING });
+    const fileContent = render(document.abstractSyntaxTree, options);
+    fs.writeFileSync(options.localFilePath, fileContent, { encoding: ENCODING });
   };
 
   const mergeDocuments = async (

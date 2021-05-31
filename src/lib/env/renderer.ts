@@ -9,18 +9,19 @@ import {
   CommentNode,
   QuoteType,
 } from "lib/env/parser";
+import { NewlineType, Options } from "lib/options";
 
 export type Render = typeof render
-export const render = (abstractSyntaxTree: DocumentNode): string =>
-  abstractSyntaxTree.statements.map(renderStatement).join("");
+export const render = (abstractSyntaxTree: DocumentNode, options: Options): string =>
+  abstractSyntaxTree.statements.map(node => renderStatement(node, options)).join("");
 
-const renderStatement = (node?: StatementNode) => {
+const renderStatement = (node: StatementNode, options: Options) => {
   const isVariableDeclaration = node.type === NodeType.variableDeclaration;
   if (isVariableDeclaration)
     return renderVariableDeclaration(node as VariableDeclarationNode);
 
   const isNewline = node.type === NodeType.newline;
-  if (isNewline) return "\n";
+  if (isNewline) return renderNewline(options);
 
   return renderComment(node as CommentNode);
 };
@@ -30,6 +31,8 @@ const renderVariableDeclaration = ({
   value,
 }: VariableDeclarationNode): string =>
   `${identifier.name}=${renderLiteral(value)}`;
+
+const renderNewline = ({ newlineType }: Options) => newlineType === NewlineType.windows ? '\r\n' : '\n'
 
 const renderLiteral = (literal?: LiteralNode): string => {
   const isEmpty = !literal;

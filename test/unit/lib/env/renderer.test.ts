@@ -3,6 +3,7 @@ import {
   NodeType,
   QuoteType,
 } from "../../../../src/lib/env/parser";
+import { Options, NewlineType } from "../../../../src/lib/options";
 import { render } from "../../../../src/lib/env/renderer";
 
 describe(".env renderer", () => {
@@ -16,7 +17,8 @@ describe(".env renderer", () => {
         },
       ],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("EMPTY=");
   });
 
@@ -31,7 +33,8 @@ describe(".env renderer", () => {
         },
       ],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("RAW=value");
   });
 
@@ -50,7 +53,8 @@ describe(".env renderer", () => {
         },
       ],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual('GIMME="double quotes"');
   });
 
@@ -69,7 +73,8 @@ describe(".env renderer", () => {
         },
       ],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("theseAre='single quotes'");
   });
 
@@ -78,7 +83,8 @@ describe(".env renderer", () => {
       type: NodeType.document,
       statements: [{ type: NodeType.comment, body: " this is a comment" }],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("# this is a comment");
   });
 
@@ -87,7 +93,8 @@ describe(".env renderer", () => {
       type: NodeType.document,
       statements: [{ type: NodeType.comment, body: null }],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("#");
   });
 
@@ -96,7 +103,8 @@ describe(".env renderer", () => {
       type: NodeType.document,
       statements: [],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("");
   });
 
@@ -105,8 +113,19 @@ describe(".env renderer", () => {
       type: NodeType.document,
       statements: [{type: NodeType.newline}],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("\n");
+  });
+
+  test("that windows newlines can be rendered", () => {
+    const abstractSyntaxTree: DocumentNode = {
+      type: NodeType.document,
+      statements: [{type: NodeType.newline}],
+    };
+    const options: Partial<Options> = { newlineType: NewlineType.windows };
+    const document = render(abstractSyntaxTree, options as Options);
+    expect(document).toEqual("\r\n");
   });
 
   test("that empty syntax trees render nothing", () => {
@@ -114,7 +133,8 @@ describe(".env renderer", () => {
       type: NodeType.document,
       statements: [],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual("");
   });
 
@@ -145,7 +165,8 @@ describe(".env renderer", () => {
         },
       ],
     };
-    const document = render(abstractSyntaxTree);
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
     expect(document).toEqual(
 `nestedSingle='some \\'nested\\' single quotes'
 nestedDouble="some \\"nested\\" double quotes"`);

@@ -9,7 +9,7 @@ import {
   ParsedEnvDocument,
   QuoteType,
 } from "../../../../src/lib/env/parser";
-import { Options } from "../../../../src/lib/options";
+import { NewlineType, Options } from "../../../../src/lib/options";
 import { Merge, NodeFs, makeMerge } from "../../../../src/lib/env/merger";
 
 type MockedObject<T> = Partial<Record<keyof T, jest.Mock>>;
@@ -51,6 +51,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      newlineType: NewlineType.unix,
     };
     const execution = async () => await merge(options);
     await expect(execution).rejects.toThrow("Could not locate .env.dist");
@@ -138,6 +139,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      newlineType: NewlineType.unix,
     };
     await merge(options);
 
@@ -168,7 +170,7 @@ describe(".env merger", () => {
         },
       ],
     };
-    expect(render.mock.calls).toEqual([[abstractSyntaxTree]]);
+    expect(render.mock.calls).toEqual([[abstractSyntaxTree, options]]);
     expect(fs.writeFileSync.mock.calls).toEqual([
       [".env", "foo=user input value\n", { encoding: "utf8" }],
     ]);
@@ -240,6 +242,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      newlineType: NewlineType.unix,
     };
     await merge(options);
 
@@ -270,7 +273,7 @@ describe(".env merger", () => {
         },
       ],
     };
-    expect(render.mock.calls).toEqual([[abstractSyntaxTree]]);
+    expect(render.mock.calls).toEqual([[abstractSyntaxTree, options]]);
     expect(fs.writeFileSync.mock.calls).toEqual([
       [".env", "foo=user input value\n", { encoding: "utf8" }],
     ]);
@@ -406,6 +409,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      newlineType: NewlineType.unix,
     };
     await merge(options);
 
@@ -430,7 +434,7 @@ describe(".env merger", () => {
         },
       ],
     };
-    expect(render.mock.calls).toEqual([[abstractSyntaxTree]]);
+    expect(render.mock.calls).toEqual([[abstractSyntaxTree, options]]);
     expect(fs.writeFileSync.mock.calls).toEqual([
       [".env", "foo=already exists", { encoding: "utf8" }],
     ]);
@@ -523,6 +527,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: false,
+      newlineType: NewlineType.unix,
     };
     await merge(options)
 
@@ -548,7 +553,7 @@ describe(".env merger", () => {
         },
       ],
     }
-    expect(render.mock.calls).toEqual([[mergedAst]])
+    expect(render.mock.calls).toEqual([[mergedAst, options]])
     expect(fs.writeFileSync.mock.calls).toEqual([['.env', 'lorem=\n', { encoding: 'utf8' }]])
   })
 
@@ -822,6 +827,7 @@ both="some 'single' and \\"double \\" quotes"
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: false,
+      newlineType: NewlineType.unix,
     };
     await merge(options)
 
@@ -892,7 +898,7 @@ both="some 'single' and \\"double \\" quotes"
         },
       ],
     }
-    expect(render.mock.calls).toEqual([[ mergedAst ]])
+    expect(render.mock.calls).toEqual([[ mergedAst, options ]])
     expect(fs.writeFileSync.mock.calls).toEqual([['.env', mergedEnvCode, { encoding: 'utf8' }]])
   })
 });
