@@ -14,7 +14,7 @@ const merge = makeMerge(cliPrompter, analyzeEnvSourceCode, parseEnvTokens, rende
 
 const main = async () => {
     try {
-        const options = getOptionsFromEnvironment(process.argv, process.env)
+        const options = getOptionsFromEnvironment(process)
         await merge(options)
     } catch (e) {
         cliPrompter.printError(e)
