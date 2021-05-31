@@ -5,32 +5,44 @@ type Argument = [ArgumentName, ArgumentValue]
 type ArgumentMap = Record<ArgumentName, ArgumentValue>
 type ProcessEnvVariable = [keyof NodeJS.ProcessEnv, NodeJS.ProcessEnv[keyof NodeJS.ProcessEnv]]
 
+export enum NewlineType {
+    unix = 'unix',
+    windows = 'windows'
+}
+
 export interface Options {
     distFilePath: string
     localFilePath: string
     prompts: boolean
+    newlineType: NewlineType
 }
 
 const defaultOptions: Options = {
     distFilePath: '.env.dist',
     localFilePath: '.env',
-    prompts: true
+    prompts: true,
+    newlineType: NewlineType.unix
 }
 
-export const getOptionsFromEnvironment = (cliArguments: RawArgument[], processEnv: NodeJS.ProcessEnv): Options => {
-    const argumentMap = parseArguments(cliArguments)
+export type ProcessDependencies = Pick<NodeJS.Process, 'argv' | 'env' | 'platform'>
+
+export const getOptionsFromEnvironment = ({ argv, env, platform }: ProcessDependencies): Options => {
+    const argumentMap = parseArguments(argv)
+
+    const isWindows = platform === 'win32'
+    const newlineType: NewlineType = isWindows ? NewlineType.windows : NewlineType.unix
 
     const cliOptions: Partial<Options> = {}
     const argumentList = Object.entries(argumentMap)
     argumentList.forEach((argument) => mapArgumentToOptions(argument, cliOptions))
 
     const processEnvOptions: Partial<Options> = {}
-    const processEnvVariableList = Object.entries(processEnv)
+    const processEnvVariableList = Object.entries(env)
     processEnvVariableList.forEach(
         (variable) => mapProcessEnvVariableToOptions(variable, processEnvOptions)
     )
 
-    return { ...defaultOptions, ...processEnvOptions, ...cliOptions }
+    return { ...defaultOptions, newlineType, ...processEnvOptions, ...cliOptions }
 }
 
 const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>) => {
@@ -51,6 +63,18 @@ const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>
         options.prompts = getBooleanFromArgumentValue(value)
         return
     }
+
+    const isNewlineType = name === '-n' || name === '--newlineType'
+    if (isNewlineType) {
+        const validTypes = Object.values(NewlineType)
+        const isValid = validTypes.find(type => type === value)
+        if (!isValid) throw new Error(`Invalid newline type. Valid types: "${validTypes.join('", "')}"`)
+
+        options.newlineType = value as NewlineType
+        return
+    }
+
+    throw new Error(`Invalid argument ${name}`)
 }
 
 const mapProcessEnvVariableToOptions = ([name, value]: ProcessEnvVariable, options: Partial<Options>) => {
