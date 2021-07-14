@@ -1,13 +1,11 @@
 # env-prompt
-A dependency-free utility that prompts you for your project's environment variables.
+Env-prompt is a Node.js utility that enables teams to seamlessly keep their environment variables in sync.
 
-## How does it work?
-On `npm install`, env-prompt reads environment variables from two files in your project:
- - a **distributed** file (default: **`.env.dist`**)
- - a git ignored **local** file (default: **`.env`**)
+You simply provide two **.env** files:
+ - a **distributed file** (default: **`.env.dist`**) committed to version control
+ - a git ignored **local file** (default: **`.env`**)
 
-Env-prompt will diff these two files, prompting you for any values that exist in your distributed file but not in your
- local file.  Your newly input values will be written to your local environment file.
+As new variables are added to the **distributed file**, your team is prompted for their values.
 
 ## Getting started
 1) Install env-prompt:
@@ -15,39 +13,44 @@ Env-prompt will diff these two files, prompting you for any values that exist in
 $ npm install -D env-prompt
 ```
 
-2) Add a postinstall hook to your `package.json` file:
+2) Add the `env-prompt` command to a script in your `package.json` file:
 ```diff
 {
   "name": "test",
   "main": "index.js",
 + "scripts": {
-+   "postinstall": "env-prompt"
++   "start": "env-prompt"
 + },
   "devDependencies": {
-    "env-prompt": "^1.0.0"
+    "env-prompt": "^2.0.0"
   }
 }
 ```
 
 3) Create a `.env.dist` file in the same directory as your `package.json` file:
 ```
-DB_USER=root
-DB_PASS=root123
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=sakila
+API_HOSTNAME=https://example.com
+API_USER=api_user
+API_PASS=myL1tP4$$w0rd
 ```
 
-Env-prompt is now setup, and will be triggered when you run `npm install`.
+Env-prompt is now set up to diff your `.env` and `.env.dist` files when executing `npm run start`.
 
-## Options
+## Command-line interface
+### Synopsis
 ```sh
--d, --distFile <path>
-       Change the distributed environment file env-prompt reads from. (default: .env.dist)
-
--l, --localFile <path>
-       Change the local environment file env-prompt reads from and writes to. (default: .env)
+[CI=<true|false>] npx env-prompt [--distFile|-d <path>] [--localFile|-l <path>] [--prompts|-p <true|false>] 
 ```
 
-## [Product backlog](https://github.com/env-prompt/env-prompt/issues?q=is%3Aissue+is%3Aopen+label%3Agroomed)
-*Is your use case not covered?  Feel free to [open an issue](https://github.com/env-prompt/env-prompt/issues/new).*
+### Arguments
+
+| Name | Default | Description |
+| --- | --- | ---
+| `--distFile`, `-d` | `.env.dist` | This is the .env file that env-prompt will scan for new environment variables. It is recommended that you commit this file to version control.
+| `--localFile`, `-l` | `.env` | This is the .env file for your local environment. When prompted for new variables, the input values will be written here. It is recommended that you add this file to the `.gitignore` of your project.
+| `--prompts` | `true`  | When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected. The default value from the distributed file will be written for new variables.
+
+### Shell variables
+| Name | Default | Description
+| --- | --- | ---
+| `CI` | `false` | Tells env-prompt if it's being executed by continuous integration. Setting `CI=true` will make env-prompt run headlessly, and is equivalent to `--prompts false`.
