@@ -39,7 +39,10 @@ Env-prompt is now set up to diff your `.env` and `.env.dist` files when executin
 ## Command-line interface
 ### Synopsis
 ```sh
-[CI=<true|false>] npx env-prompt [--distFile|-d <path>] [--localFile|-l <path>] [--prompts|-p <true|false>] 
+[CI=<true|false>] npx env-prompt
+    [--distFile|-d <path>]
+    [--localFile|-l <path>]
+    [--prompts|-p <true|false>] 
 ```
 
 ### Arguments
