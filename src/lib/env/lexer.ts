@@ -72,7 +72,44 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     const isIdentifier = IDENTIFIER_START_EXPRESSION.test(firstChar)
     if (isIdentifier) return makeIdentifierToken(position, src, tokens)
 
-    throw new Error('Unrecognized token.')
+
+    {
+        const previousToken = getPreviousToken(tokens)
+        const coordinates = getCoordinates(previousToken)
+        throw new Error(`Unrecognized token "${firstChar}" at position ${coordinates.position}, line ${coordinates.line}, col ${coordinates.column}.`)
+    }
+}
+
+interface TokenCoordinates {
+    line: number
+    column: number
+    position: number
+}
+const getCoordinates = (previousToken?: Token): TokenCoordinates => {
+    if (!previousToken) {
+        return {
+            line: 1,
+            column: 1,
+            position: 1
+        }
+    }
+
+    const position = previousToken.position + previousToken.length
+
+    const isAfterNewline = previousToken.type === TokenType.newline
+    if (isAfterNewline) {
+        return {
+            line: previousToken.line + 1,
+            column: 1,
+            position
+        }
+    }
+
+    return {
+        line: previousToken.line,
+        column: previousToken.column + previousToken.length,
+        position
+    }
 }
 
 export const getLine = (tokens: Token[]): number => {
@@ -258,6 +295,13 @@ const makeIdentifierToken = (position: number, src: string, tokens: Token[]): To
         length: value.length,
         value
     }
+}
+
+const getPreviousToken = (tokens: Token[]): Token => {
+    const hasTokens = tokens.length > 0
+    if (!hasTokens) return null
+
+    return tokens[tokens.length - 1]
 }
 
 const getPreviousTwoNonWhitespaceTokens = (tokens: Token[]): [Token?, Token?] => {
