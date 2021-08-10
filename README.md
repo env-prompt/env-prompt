@@ -43,14 +43,30 @@ Env-prompt is now set up to diff your `.env` and `.env.dist` files when executin
 ```
 
 ### Arguments
+#### `-d <path>`
+#### `--distFile <path>`
+_Default: `.env.dist`_\
+This is the .env file that env-prompt will scan for new environment variables. It is recommended that you commit this file to version control.
 
-| Name | Default | Description |
-| --- | --- | ---
-| `--distFile`, `-d` | `.env.dist` | This is the .env file that env-prompt will scan for new environment variables. It is recommended that you commit this file to version control.
-| `--localFile`, `-l` | `.env` | This is the .env file for your local environment. When prompted for new variables, the input values will be written here. It is recommended that you add this file to the `.gitignore` of your project.
-| `--prompts` | `true`  | When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected. The default value from the distributed file will be written for new variables.
 
-### Shell variables
-| Name | Default | Description
-| --- | --- | ---
-| `CI` | `false` | Tells env-prompt if it's being executed by continuous integration. Setting `CI=true` will make env-prompt run headlessly, and is equivalent to `--prompts false`.
+#### `-l <path>`
+#### `--localFile <path>`
+_Default: `.env`_\
+This is the .env file for your local environment. When prompted for new variables, the input values will be written here. It is recommended that you add this file to the `.gitignore` of your project.
+
+#### `--prompts <true|false>`
+_Default: `true`_\
+When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected.
+The default value from the distributed file will be written for new variables.
+
+#### `-n <unix|windows>`
+#### `--newlineType <unix|windows>`
+_Default (on non-windows systems): `unix`_\
+_Default (on windows): `windows`_\
+Determines how newlines will be written to disk. For `unix`, `\n` will be used. For `windows`, `\r\n` will be used.
+This argument only impacts how newlines are _written_ to disk. Regardless of this value, `\n`, `\r\n`, and `\r` are all _read_ from disk as newlines.
+
+### Variables
+#### `--CI <true|false>`
+_Default: `true`_\
+Setting `CI=true` is equivalent to `--prompts false`.
