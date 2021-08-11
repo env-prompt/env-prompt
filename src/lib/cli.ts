@@ -1,4 +1,4 @@
-import { StdIoReader } from "lib/std-io-reader"
+import { StdIoReaderInterface } from "lib/std-io-reader"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
@@ -25,7 +25,7 @@ export interface CliPrompterInterface {
 export class CliPrompter implements CliPrompterInterface {
     public constructor(
         private console: Console,
-        private stdIoReader: StdIoReader
+        private stdIoReader: StdIoReaderInterface
     ) {}
 
     public promptUserAboutNewVariables() {

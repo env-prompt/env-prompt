@@ -1,4 +1,4 @@
-import { makeStdIoReader } from "../../../src/lib/std-io-reader";
+import { StdIoReader } from "../../../src/lib/std-io-reader";
 import { ReadLine } from "readline"
 
 type Mocked<T> = Partial<Record<keyof T, jest.Mock>>;
@@ -12,7 +12,7 @@ describe("stdio reader", () => {
 
         mockedReadLine.question.mockImplementationOnce((_, callback) => void callback('two'))
         const mockedReadLineFactory = () => mockedReadLine as any as ReadLine
-        const stdIoReader = makeStdIoReader(mockedReadLineFactory)
+        const stdIoReader = new StdIoReader(mockedReadLineFactory)
 
         const response = await stdIoReader.promptUser('what is 1 + 1?')
         stdIoReader.pause()
