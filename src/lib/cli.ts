@@ -1,4 +1,4 @@
-import { StdIoReader } from "lib/std-io-reader"
+import { StdIoReaderInterface } from "lib/std-io-reader"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
@@ -15,28 +15,40 @@ export interface EnvironmentVariable {
     value: string
 }
 
-export interface CliPrompter {
+export interface CliPrompterInterface {
     promptUserAboutNewVariables: () => void
     promptUserForEnvironmentVariable: (environmentVariable: EnvironmentVariable) => Promise<EnvironmentVariable>
     printError: (error: Error) => void
     printWarning: (warning: string) => void
 }
-export const makeCliPrompter = (console: Console, stdIoReader: StdIoReader): CliPrompter => ({
-    promptUserAboutNewVariables: () => console.warn(fgYellow(
-        'New environment variables were found. When prompted, please enter their values.'
-    )),
 
-    promptUserForEnvironmentVariable: async ({ name, value: defaultValue }) => {
+export class CliPrompter implements CliPrompterInterface {
+    public constructor(
+        private console: Console,
+        private stdIoReader: StdIoReaderInterface
+    ) {}
+
+    public promptUserAboutNewVariables() {
+        this.console.warn(fgYellow(
+            'New environment variables were found. When prompted, please enter their values.'
+        ))
+    }
+
+    public async promptUserForEnvironmentVariable({ name, value: defaultValue }: EnvironmentVariable): Promise<EnvironmentVariable> {
         const question: string = buildQuestion(name, defaultValue)
         // TODO maybe trim inputValue before returning it
-        const inputValue: string = await stdIoReader.promptUser(question)
+        const inputValue: string = await this.stdIoReader.promptUser(question)
         const blankValueProvided = inputValue.trim().length === 0
         const value = blankValueProvided ? defaultValue : inputValue
-        stdIoReader.pause()
+        this.stdIoReader.pause()
         return { name, value }
-    },
+    }
 
-    printError: (error) => console.error(fgRed(`ERROR: ${error.message}`)),
+    public printError(error: Error) {
+        this.console.error(fgRed(`ERROR: ${error.message}`))
+    }
 
-    printWarning: (warning) => console.error(fgYellow(warning))
-})
+    public printWarning(warning: string) {
+        this.console.error(fgYellow(warning))
+    }
+}

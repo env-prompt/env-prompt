@@ -1,12 +1,11 @@
-import * as cli from "../../../src/lib/cli";
-import { CliPrompter, EnvironmentVariable } from "../../../src/lib/cli";
-import { StdIoReader } from "../../../src/lib/std-io-reader";
+import { CliPrompter, CliPrompterInterface, EnvironmentVariable } from "../../../src/lib/cli";
+import { StdIoReaderInterface } from "../../../src/lib/std-io-reader";
 
 type Mocked<T> = Partial<Record<keyof T, jest.Mock>>;
 
 describe(".env parser", () => {
   let mockedConsole: Mocked<Console>;
-  let mockedStdIoReader: Mocked<StdIoReader>;
+  let mockedStdIoReader: Mocked<StdIoReaderInterface>;
   beforeEach(() => {
     mockedConsole = { warn: jest.fn(), error: jest.fn() };
     mockedStdIoReader = {
@@ -15,10 +14,10 @@ describe(".env parser", () => {
     };
   });
 
-  const makeCliPrompter = (): CliPrompter =>
-    cli.makeCliPrompter(
+  const makeCliPrompter = (): CliPrompterInterface =>
+    new CliPrompter(
       mockedConsole as Console,
-      mockedStdIoReader as StdIoReader
+      mockedStdIoReader as StdIoReaderInterface
     );
 
   test("that the new variable prompt works", () => {

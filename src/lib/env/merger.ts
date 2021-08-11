@@ -1,4 +1,4 @@
-import { CliPrompter } from "lib/cli";
+import { CliPrompterInterface } from "lib/cli";
 import { Token, AnalyzeEnvSourceCode } from "lib/env/lexer";
 import {
   ParsedEnvDocument,
@@ -17,53 +17,85 @@ import { Options } from "lib/options";
 
 export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
 
-export type Merge = ReturnType<typeof makeMerge>;
-export const makeMerge = (
-  cliPrompter: CliPrompter,
-  analyzeEnvSourceCode: AnalyzeEnvSourceCode,
-  parseEnvTokens: ParseEnvTokens,
-  render: Render,
-  fs: NodeFs
-) => {
-  const ENCODING = "utf8";
+const ENCODING = "utf8";
 
-  const merge = async (options: Options) => {
-    const distDocument = parseDistDocument(options);
-    const localDocument = parseLocalDocument(options);
-    const mergedDocument = await mergeDocuments(distDocument, localDocument, options);
+export interface MergerInterface {
+  merge: (options: Options) => void
+}
 
-    writeLocalEnvFile(options, mergedDocument);
-  };
+export class Merger implements MergerInterface {
+  private cliPrompter: CliPrompterInterface
 
-  const analyzeDistEnvFile = ({ distFilePath: path }: Options): Token[] => {
-    const exists = fs.existsSync(path);
+  private analyzeEnvSourceCode: AnalyzeEnvSourceCode
+
+  private parseEnvTokens: ParseEnvTokens
+
+  private render: Render
+
+  private fs: NodeFs
+
+  public setCliPrompter(cliPrompter: CliPrompterInterface): this {
+    this.cliPrompter = cliPrompter
+    return this
+  }
+
+  public setAnalyzeEnvSourceCode(analyzeEnvSourceCode: AnalyzeEnvSourceCode): this {
+    this.analyzeEnvSourceCode = analyzeEnvSourceCode
+    return this
+  }
+
+  public setParseEnvTokens(parseEnvTokens: ParseEnvTokens): this {
+    this.parseEnvTokens = parseEnvTokens
+    return this
+  }
+
+  public setRender(render: Render): this {
+    this.render = render
+    return this
+  }
+
+  public setFs(fs: NodeFs): this {
+    this.fs = fs
+    return this
+  }
+  
+  public async merge (options: Options) {
+    const distDocument = this.parseDistDocument(options);
+    const localDocument = this.parseLocalDocument(options);
+    const mergedDocument = await this.mergeDocuments(distDocument, localDocument, options);
+
+    this.writeLocalEnvFile(options, mergedDocument);
+  }
+
+  private analyzeDistEnvFile ({ distFilePath: path }: Options): Token[] {
+    const exists = this.fs.existsSync(path);
     if (!exists) throw new Error(`Could not locate ${path}`);
 
-    const src = fs.readFileSync(path, { encoding: ENCODING }).toString();
-    return analyzeEnvSourceCode(src);
-  };
+    const src = this.fs.readFileSync(path, { encoding: ENCODING }).toString();
+    return this.analyzeEnvSourceCode(src);
+  }
 
-  const analyzeLocalEnvFile = ({ localFilePath: path }: Options): Token[] => {
-    const exists = fs.existsSync(path);
+  private analyzeLocalEnvFile ({ localFilePath: path }: Options): Token[] {
+    const exists = this.fs.existsSync(path);
     if (!exists) return [];
 
-    const src = fs.readFileSync(path, { encoding: ENCODING }).toString();
-    return analyzeEnvSourceCode(src);
-  };
+    const src = this.fs.readFileSync(path, { encoding: ENCODING }).toString();
+    return this.analyzeEnvSourceCode(src);
+  }
 
-  const writeLocalEnvFile = (
+  private writeLocalEnvFile (
     options: Options,
     document: ParsedEnvDocument
-  ) => {
-    const fileContent = render(document.abstractSyntaxTree, options);
-    fs.writeFileSync(options.localFilePath, fileContent, { encoding: ENCODING });
-  };
+  ) {
+    const fileContent = this.render(document.abstractSyntaxTree, options);
+    this.fs.writeFileSync(options.localFilePath, fileContent, { encoding: ENCODING });
+  }
 
-  const mergeDocuments = async (
+  private async mergeDocuments (
     distributedDocument: ParsedEnvDocument,
     localDocument: ParsedEnvDocument,
     options: Options
-  ): Promise<ParsedEnvDocument> => {
+  ): Promise<ParsedEnvDocument> {
     const newLocalDocument: ParsedEnvDocument = { ...localDocument };
 
     let hasBeenPrompted = false;
@@ -74,7 +106,7 @@ export const makeMerge = (
       if (existsLocally) continue;
 
       if (!hasBeenPrompted && options.prompts) {
-        cliPrompter.promptUserAboutNewVariables();
+        this.cliPrompter.promptUserAboutNewVariables();
         hasBeenPrompted = true;
       }
 
@@ -83,7 +115,7 @@ export const makeMerge = (
 
       let value = defaultValue
       if (options.prompts) {
-        const userInputEnvironmentVariable = await cliPrompter.promptUserForEnvironmentVariable({
+        const userInputEnvironmentVariable = await this.cliPrompter.promptUserForEnvironmentVariable({
           name,
           value: defaultValue,
         });
@@ -95,20 +127,18 @@ export const makeMerge = (
     }
 
     return newLocalDocument;
-  };
+  }
 
-  const parseDistDocument = (options: Options): ParsedEnvDocument => {
-    const tokens = analyzeDistEnvFile(options);
-    return parseEnvTokens(tokens);
-  };
+  private parseDistDocument (options: Options): ParsedEnvDocument {
+    const tokens = this.analyzeDistEnvFile(options);
+    return this.parseEnvTokens(tokens);
+  }
 
-  const parseLocalDocument = (options: Options): ParsedEnvDocument => {
-    const tokens = analyzeLocalEnvFile(options);
-    return parseEnvTokens(tokens);
-  };
-
-  return merge;
-};
+  private parseLocalDocument (options: Options): ParsedEnvDocument {
+    const tokens = this.analyzeLocalEnvFile(options);
+    return this.parseEnvTokens(tokens);
+  }
+}
 
 const addVariableToDocument = (
   variable: VariableDeclarationNode,
