@@ -40,9 +40,10 @@ Env-prompt is now set up to diff your `.env` and `.env.dist` files when executin
 ### Synopsis
 ```sh
 [CI=<true|false>] npx env-prompt
-    [--distFile|-d <path>]
-    [--localFile|-l <path>]
-    [--prompts|-p <true|false>] 
+    [-d|--distFile <path>]
+    [-l|--localFile <path>]
+    [-n|--newlineType <unix|windows>]
+    [-p|--prompts <true|false>]
 ```
 
 ### Arguments
@@ -57,11 +58,6 @@ This is the .env file that env-prompt will scan for new environment variables. I
 _Default: `.env`_\
 This is the .env file for your local environment. When prompted for new variables, the input values will be written here. It is recommended that you add this file to the `.gitignore` of your project.
 
-#### `--prompts <true|false>`
-_Default: `true`_\
-When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected.
-The default value from the distributed file will be written for new variables.
-
 #### `-n <unix|windows>`
 #### `--newlineType <unix|windows>`
 _Default (on non-windows systems): `unix`_\
@@ -69,7 +65,12 @@ _Default (on windows): `windows`_\
 Determines how newlines will be written to disk. For `unix`, `\n` will be used. For `windows`, `\r\n` will be used.
 This argument only impacts how newlines are _written_ to disk. Regardless of this value, `\n`, `\r\n`, and `\r` are all _read_ from disk as newlines.
 
+#### `--prompts <true|false>`
+_Default: `true`_\
+When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected.
+The default value from the distributed file will be written for new variables.
+
 ### Variables
-#### `--CI <true|false>`
+#### `CI=<true|false>`
 _Default: `true`_\
 Setting `CI=true` is equivalent to `--prompts false`.
