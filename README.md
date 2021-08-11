@@ -73,5 +73,5 @@ The default value from the distributed file will be written for new variables.
 
 ### Variables
 #### `CI=<true|false>`
-_Default: `true`_\
+_Default: `false`_\
 Setting `CI=true` is equivalent to `--prompts false`.
