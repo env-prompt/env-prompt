@@ -39,10 +39,25 @@ const renderLiteral = (literal?: LiteralNode): string => {
   if (isEmpty) return "";
 
   const isRawLiteral = literal.type === NodeType.literal;
-  if (isRawLiteral) return (literal as RawLiteralNode).value
+  if (isRawLiteral) {
+    const { value } = (literal as RawLiteralNode)
+    const hasEscapeChars = /\\./.test(value)
+    if (hasEscapeChars) return renderEscapedRawLiteral(literal as RawLiteralNode)
+
+    return value
+  }
 
   return renderQuotedLiteral(literal as QuotedLiteralNode);
 };
+
+const renderEscapedRawLiteral = (escapedRawLiteral: RawLiteralNode): string => {
+  const quotedLiteral: QuotedLiteralNode = {
+    type: NodeType.quotedLiteral,
+    quoteType: QuoteType.double,
+    content: escapedRawLiteral as RawLiteralNode
+  }
+  return renderQuotedLiteral(quotedLiteral as QuotedLiteralNode);
+}
 
 const renderQuotedLiteral = ({
   quoteType,

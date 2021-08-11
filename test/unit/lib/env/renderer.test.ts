@@ -171,4 +171,20 @@ describe(".env renderer", () => {
 `nestedSingle='some \\'nested\\' single quotes'
 nestedDouble="some \\"nested\\" double quotes"`);
   });
+
+  test("that unquoted literal nodes containing escape chars are rendered with quotes", () => {
+    const abstractSyntaxTree: DocumentNode = {
+      type: NodeType.document,
+      statements: [
+        {
+          type: NodeType.variableDeclaration,
+          identifier: { type: NodeType.identifier, name: "ESCAPED_VAR" },
+          value: { type: NodeType.literal, value: "has\\nescaped\\nnewlines" },
+        },
+      ],
+    };
+    const options: Partial<Options> = { newlineType: NewlineType.unix };
+    const document = render(abstractSyntaxTree, options as Options);
+    expect(document).toEqual(`ESCAPED_VAR="has\\nescaped\\nnewlines"`);
+  })
 });
