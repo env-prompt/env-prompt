@@ -10,7 +10,7 @@ import {
   QuoteType,
 } from "../../../../src/lib/env/parser";
 import { NewlineType, Options } from "../../../../src/lib/options";
-import { Merge, NodeFs, makeMerge } from "../../../../src/lib/env/merger";
+import { MergerInterface, NodeFs, Merger } from "../../../../src/lib/env/merger";
 
 type MockedObject<T> = Partial<Record<keyof T, jest.Mock>>;
 
@@ -20,7 +20,7 @@ describe(".env merger", () => {
   let parseEnvTokens: jest.Mock;
   let render: jest.Mock;
   let fs: MockedObject<NodeFs>;
-  let merge: Merge;
+  let merger: MergerInterface;
   beforeEach(() => {
     cliPrompter = {
       promptUserAboutNewVariables: jest.fn(),
@@ -36,13 +36,12 @@ describe(".env merger", () => {
       readFileSync: jest.fn(),
       writeFileSync: jest.fn(),
     };
-    merge = makeMerge(
-      cliPrompter as CliPrompterInterface,
-      analyzeEnvSourceCode,
-      parseEnvTokens,
-      render,
-      fs as NodeFs
-    );
+    merger = new Merger()
+      .setCliPrompter(cliPrompter as CliPrompterInterface)
+      .setAnalyzeEnvSourceCode(analyzeEnvSourceCode)
+      .setParseEnvTokens(parseEnvTokens)
+      .setRender(render)
+      .setFs(fs as NodeFs)
   });
 
   test("that merging fails when the dist file does not exist", async () => {
@@ -53,7 +52,7 @@ describe(".env merger", () => {
       prompts: true,
       newlineType: NewlineType.unix,
     };
-    const execution = async () => await merge(options);
+    const execution = async () => await merger.merge(options);
     await expect(execution).rejects.toThrow("Could not locate .env.dist");
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"]]);
@@ -141,7 +140,7 @@ describe(".env merger", () => {
       prompts: true,
       newlineType: NewlineType.unix,
     };
-    await merge(options);
+    await merger.merge(options);
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
@@ -244,7 +243,7 @@ describe(".env merger", () => {
       prompts: true,
       newlineType: NewlineType.unix,
     };
-    await merge(options);
+    await merger.merge(options);
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
@@ -411,7 +410,7 @@ describe(".env merger", () => {
       prompts: true,
       newlineType: NewlineType.unix,
     };
-    await merge(options);
+    await merger.merge(options);
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
@@ -529,7 +528,7 @@ describe(".env merger", () => {
       prompts: false,
       newlineType: NewlineType.unix,
     };
-    await merge(options)
+    await merger.merge(options)
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
@@ -829,7 +828,7 @@ both="some 'single' and \\"double \\" quotes"
       prompts: false,
       newlineType: NewlineType.unix,
     };
-    await merge(options)
+    await merger.merge(options)
 
     expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([

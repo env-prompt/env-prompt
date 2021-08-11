@@ -6,17 +6,22 @@ import { CliPrompter } from "lib/cli"
 import { analyzeEnvSourceCode } from "lib/env/lexer"
 import { parseEnvTokens } from "lib/env/parser"
 import { render } from "lib/env/renderer"
-import { makeMerge } from "lib/env/merger"
+import { Merger } from "lib/env/merger"
 
 const readLineFactory = () => readline.createInterface(process.stdin, process.stdout)
 const stdIoReader = new StdIoReader(readLineFactory)
 const cliPrompter = new CliPrompter(console, stdIoReader)
-const merge = makeMerge(cliPrompter, analyzeEnvSourceCode, parseEnvTokens, render, fs)
+const merger = new Merger()
+    .setCliPrompter(cliPrompter)
+    .setAnalyzeEnvSourceCode(analyzeEnvSourceCode)
+    .setParseEnvTokens(parseEnvTokens)
+    .setRender(render)
+    .setFs(fs)
 
 const main = async () => {
     try {
         const options = getOptionsFromEnvironment(process)
-        await merge(options)
+        await merger.merge(options)
     } catch (e) {
         cliPrompter.printError(e)
     }
