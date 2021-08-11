@@ -65,6 +65,7 @@ _Default (on windows): `windows`_\
 Determines how newlines will be written to disk. For `unix`, `\n` will be used. For `windows`, `\r\n` will be used.
 This argument only impacts how newlines are _written_ to disk. Regardless of this value, `\n`, `\r\n`, and `\r` are all _read_ from disk as newlines.
 
+#### `-p <true|false>`
 #### `--prompts <true|false>`
 _Default: `true`_\
 When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected.
