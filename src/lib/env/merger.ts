@@ -1,4 +1,4 @@
-import { CliPrompter } from "lib/cli";
+import { CliPrompterInterface } from "lib/cli";
 import { Token, AnalyzeEnvSourceCode } from "lib/env/lexer";
 import {
   ParsedEnvDocument,
@@ -19,7 +19,7 @@ export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileS
 
 export type Merge = ReturnType<typeof makeMerge>;
 export const makeMerge = (
-  cliPrompter: CliPrompter,
+  cliPrompter: CliPrompterInterface,
   analyzeEnvSourceCode: AnalyzeEnvSourceCode,
   parseEnvTokens: ParseEnvTokens,
   render: Render,

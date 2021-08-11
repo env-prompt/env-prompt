@@ -1,4 +1,4 @@
-import { CliPrompter } from "../../../../src/lib/cli";
+import { CliPrompterInterface } from "../../../../src/lib/cli";
 import {
   Token,
   TokenType,
@@ -15,7 +15,7 @@ import { Merge, NodeFs, makeMerge } from "../../../../src/lib/env/merger";
 type MockedObject<T> = Partial<Record<keyof T, jest.Mock>>;
 
 describe(".env merger", () => {
-  let cliPrompter: MockedObject<CliPrompter>;
+  let cliPrompter: MockedObject<CliPrompterInterface>;
   let analyzeEnvSourceCode: jest.Mock;
   let parseEnvTokens: jest.Mock;
   let render: jest.Mock;
@@ -37,7 +37,7 @@ describe(".env merger", () => {
       writeFileSync: jest.fn(),
     };
     merge = makeMerge(
-      cliPrompter as CliPrompter,
+      cliPrompter as CliPrompterInterface,
       analyzeEnvSourceCode,
       parseEnvTokens,
       render,

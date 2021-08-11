@@ -1,5 +1,4 @@
-import * as cli from "../../../src/lib/cli";
-import { CliPrompter, EnvironmentVariable } from "../../../src/lib/cli";
+import { CliPrompter, CliPrompterInterface, EnvironmentVariable } from "../../../src/lib/cli";
 import { StdIoReader } from "../../../src/lib/std-io-reader";
 
 type Mocked<T> = Partial<Record<keyof T, jest.Mock>>;
@@ -15,8 +14,8 @@ describe(".env parser", () => {
     };
   });
 
-  const makeCliPrompter = (): CliPrompter =>
-    cli.makeCliPrompter(
+  const makeCliPrompter = (): CliPrompterInterface =>
+    new CliPrompter(
       mockedConsole as Console,
       mockedStdIoReader as StdIoReader
     );
