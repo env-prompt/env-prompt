@@ -1,4 +1,5 @@
 import { getColumn, getLine, Token, TokenType } from "lib/env/lexer"
+import { Options } from "lib/options"
 
 export enum NodeType {
     literal = 'literal',
@@ -59,7 +60,7 @@ export interface ParsedEnvDocument {
 }
 
 export type ParseEnvTokens = typeof parseEnvTokens
-export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
+export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): ParsedEnvDocument => {
     const document: DocumentNode = {
         type: NodeType.document,
         statements: []
@@ -137,15 +138,11 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
             let value: LiteralNode | QuotedLiteralNode
             for (; i < tokens.length;) {
                 const token = tokens[i++]
-
+                
                 const isWhitespace = token.type === TokenType.whitespace
-                const isLiteral = token.type === TokenType.literal
-                const isQuote = token.type === TokenType.quote
-                const isNewline = token.type === TokenType.newline
-                const isComment = token.type === TokenType.comment
-
                 if (isWhitespace) continue
 
+                const isQuote = token.type === TokenType.quote
                 if (isQuote) {
                     const isOpeningQuote = !value || value.type !== NodeType.quotedLiteral
                     const isClosingQuote = value && value.type === NodeType.quotedLiteral
@@ -164,6 +161,7 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                     throw new Error(`Unexpected ${token.value} ${getPositionDescription(firstToken)}.`)
                 }
 
+                const isLiteral = token.type === TokenType.literal
                 if (isLiteral) {
                     const literal: LiteralNode = {
                         type: NodeType.literal,
@@ -176,6 +174,8 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                     continue
                 }
 
+                const isNewline = token.type === TokenType.newline
+                const isComment = token.type === TokenType.comment
                 if (isNewline || isComment) {
                     i--
                     break
@@ -192,7 +192,9 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
                 },
                 value
             }
-            // TODO throw error if variable already declared... also add option for it
+            const isAlreadyDefined = variableDeclaration.identifier.name in variablesByName
+            if (!allowDuplicates && isAlreadyDefined) throw new Error(`Duplicate variable declaration "${variableDeclaration.identifier.name}" ${getStartPositionDescription(firstToken)}`)
+
             variablesByName[variableDeclaration.identifier.name] = variableDeclaration
             document.statements.push(variableDeclaration)
             continue
@@ -208,3 +210,4 @@ export const parseEnvTokens = (tokens: Token[]): ParsedEnvDocument => {
 const getNextLine = (token: Token): number => getLine([token])
 const getNextColumn = (token: Token): number => getColumn([token])
 const getPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token)}`
+const getStartPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token) - token.length}`

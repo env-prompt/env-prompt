@@ -11,7 +11,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that the localFilePath option can be overridden with -l', () => {
@@ -26,7 +26,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'prod.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'prod.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that the localFilePath option can be overridden with --localFile', () => {
@@ -41,7 +41,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'dev.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: 'dev.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that the distFilePath option can be overridden with --distFile', () => {
@@ -56,7 +56,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: 'common.env', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: 'common.env', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that the distFilePath option can be overridden with --distFile', () => {
@@ -71,7 +71,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: 'shared.env', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: 'shared.env', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that --prompts sets the prompts option to true', () => {
@@ -85,7 +85,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that --prompts=true sets the prompts option to true', () => {
@@ -99,7 +99,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that --prompts=false sets the prompts option to false', () => {
@@ -113,7 +113,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that -p sets the prompts option to true', () => {
@@ -127,7 +127,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that -p=true sets the prompts option to true', () => {
@@ -141,7 +141,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that -p=false sets the prompts option to false', () => {
@@ -155,7 +155,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that CI=false in process.env sets the prompts option to true', () => {
@@ -168,7 +168,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that CI=true in process.env sets the prompts option to false', () => {
@@ -181,7 +181,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: false, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that CI=true in process.env and --prompts sets the prompts option to true', () => {
@@ -195,7 +195,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that newline type is set to "windows" when running on a windows operating system', () => {
@@ -208,7 +208,7 @@ describe("options", () => {
             platform: 'win32'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.windows } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.windows } as Options)
     });
 
     test('that newline type is set to "unix" when running on any non-windows operating system', () => {
@@ -221,7 +221,7 @@ describe("options", () => {
             platform: 'darwin'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that newline type is set to "windows" when the -n=windows argument is passed, regardless of operating system', () => {
@@ -235,7 +235,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.windows } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.windows } as Options)
     });
 
     test('that newline type is set to "windows" when the --newlineType=windows argument is passed, regardless of operating system', () => {
@@ -249,7 +249,7 @@ describe("options", () => {
             platform: 'linux'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.windows } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.windows } as Options)
     });
 
     test('that newline type is set to "unix" when the -n=unix argument is passed, regardless of operating system', () => {
@@ -263,7 +263,7 @@ describe("options", () => {
             platform: 'win32'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that newline type is set to "unix" when the --newlineType=unix argument is passed, regardless of operating system', () => {
@@ -277,7 +277,7 @@ describe("options", () => {
             platform: 'win32'
         }
         const options = getOptionsFromEnvironment(process)
-        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, newlineType: NewlineType.unix } as Options)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
     test('that --newlineType can only be set to "windows" or "unix"', () => {
@@ -317,5 +317,33 @@ describe("options", () => {
             platform: 'win32'
         }
         expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid argument --someUnacceptedArgument');
+    });
+
+    test('that -a sets the allowDuplicates option to true', () => {
+        const process: ProcessDependencies = {
+            argv: [
+                '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+                '/home/bkotos/Projects/env-prompt/dist/index.js',
+                '-a'
+            ],
+            env: {},
+            platform: 'linux'
+        }
+        const options = getOptionsFromEnvironment(process)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: true, newlineType: NewlineType.unix } as Options)
+    });
+
+    test('that --allowDuplicates sets the allowDuplicates option to true', () => {
+        const process: ProcessDependencies = {
+            argv: [
+                '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
+                '/home/bkotos/Projects/env-prompt/dist/index.js',
+                '--allowDuplicates'
+            ],
+            env: {},
+            platform: 'linux'
+        }
+        const options = getOptionsFromEnvironment(process)
+        expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: true, newlineType: NewlineType.unix } as Options)
     });
 });

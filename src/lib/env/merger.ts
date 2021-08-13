@@ -131,12 +131,12 @@ export class Merger implements MergerInterface {
 
   private parseDistDocument (options: Options): ParsedEnvDocument {
     const tokens = this.analyzeDistEnvFile(options);
-    return this.parseEnvTokens(tokens);
+    return this.parseEnvTokens(tokens, options);
   }
 
   private parseLocalDocument (options: Options): ParsedEnvDocument {
     const tokens = this.analyzeLocalEnvFile(options);
-    return this.parseEnvTokens(tokens);
+    return this.parseEnvTokens(tokens, options);
   }
 }
 
