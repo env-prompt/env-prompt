@@ -24,6 +24,7 @@ const main = async () => {
         await merger.merge(options)
     } catch (e) {
         cliPrompter.printError(e)
+        process.exit(1)
     }
 }
 main()

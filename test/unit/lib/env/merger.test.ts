@@ -50,6 +50,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     const execution = async () => await merger.merge(options);
@@ -138,6 +139,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     await merger.merge(options);
@@ -241,6 +243,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     await merger.merge(options);
@@ -408,6 +411,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: true,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     await merger.merge(options);
@@ -526,6 +530,7 @@ describe(".env merger", () => {
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: false,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     await merger.merge(options)
@@ -536,7 +541,7 @@ describe(".env merger", () => {
     ]);
     expect(analyzeEnvSourceCode.mock.calls).toEqual([[`lorem=""`]])
     const localTokens: Token[] = []
-    expect(parseEnvTokens.mock.calls).toEqual([[distTokens], [localTokens]])
+    expect(parseEnvTokens.mock.calls).toEqual([[distTokens, options], [localTokens, options]])
     const mergedAst: DocumentNode = {
       type: NodeType.document,
       statements: [
@@ -826,6 +831,7 @@ both="some 'single' and \\"double \\" quotes"
       distFilePath: ".env.dist",
       localFilePath: ".env",
       prompts: false,
+      allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
     await merger.merge(options)
@@ -836,7 +842,7 @@ both="some 'single' and \\"double \\" quotes"
     ]);
     expect(analyzeEnvSourceCode.mock.calls).toEqual([[ distEnvCode ]])
     const localTokens: Token[] = []
-    expect(parseEnvTokens.mock.calls).toEqual([[distTokens], [localTokens]])
+    expect(parseEnvTokens.mock.calls).toEqual([[distTokens, options], [localTokens, options]])
     const mergedAst: DocumentNode = {
       type: NodeType.document,
       statements: [

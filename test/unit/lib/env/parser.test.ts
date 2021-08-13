@@ -3,11 +3,21 @@ import {
   ParsedEnvDocument,
 } from "../../../../src/lib/env/parser";
 import { Token, TokenType } from "../../../../src/lib/env/lexer";
+import { NewlineType, Options } from "../../../../src/lib/options";
 
 describe(".env parser", () => {
+  let options: Options
+  beforeEach(() => options = {
+    distFilePath: '.env.dist',
+    localFilePath: '.env',
+    prompts: true,
+    allowDuplicates: false,
+    newlineType: NewlineType.unix
+  })
+
   test("that an empty document is parsed when there are no tokens", () => {
     const tokens: Token[] = [];
-    const document = parseEnvTokens(tokens);
+    const document = parseEnvTokens(tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: { type: "document", statements: [] },
@@ -25,7 +35,7 @@ describe(".env parser", () => {
         value: " ",
       },
     ];
-    const document = parseEnvTokens(tokens);
+    const document = parseEnvTokens(tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: { type: "document", statements: [] },
@@ -43,7 +53,7 @@ describe(".env parser", () => {
         value: "\n",
       },
     ];
-    const document = parseEnvTokens(tokens);
+    const document = parseEnvTokens(tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -64,7 +74,7 @@ describe(".env parser", () => {
         value: "#",
       },
     ];
-    const document = parseEnvTokens(tokens);
+    const document = parseEnvTokens(tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -93,7 +103,7 @@ describe(".env parser", () => {
         value: "hello",
       },
     ];
-    const document = parseEnvTokens(tokens);
+    const document = parseEnvTokens(tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -122,7 +132,7 @@ describe(".env parser", () => {
         value: "#",
       },
     ];
-    expect(() => parseEnvTokens(tokens)).toThrow(
+    expect(() => parseEnvTokens(tokens, options)).toThrow(
       "Expected newline or end of document after comment at line 1 column 2."
     );
   });
@@ -139,7 +149,7 @@ describe(".env parser", () => {
           value: "foo",
         },
       ];
-      expect(() => parseEnvTokens(tokens)).toThrow(
+      expect(() => parseEnvTokens(tokens, options)).toThrow(
         'Expected = after variable "foo" at line 1 column 4.'
       );
     });
@@ -163,7 +173,7 @@ describe(".env parser", () => {
           value: '"',
         },
       ];
-      expect(() => parseEnvTokens(tokens)).toThrow(
+      expect(() => parseEnvTokens(tokens, options)).toThrow(
         'Expected = after variable "foo" at line 1 column 4.'
       );
     });
@@ -187,7 +197,7 @@ describe(".env parser", () => {
           value: "=",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -235,7 +245,7 @@ describe(".env parser", () => {
           value: "john",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
       expect(document).toEqual({
         variablesByName: {
           name: {
@@ -292,7 +302,7 @@ describe(".env parser", () => {
           value: " ",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
       expect(document).toEqual({
         variablesByName: {
           name: {
@@ -355,7 +365,7 @@ describe(".env parser", () => {
           value: '"',
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -429,7 +439,7 @@ describe(".env parser", () => {
           value: "'",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -503,7 +513,7 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -571,7 +581,7 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
-      const document = parseEnvTokens(tokens);
+      const document = parseEnvTokens(tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -592,6 +602,123 @@ describe(".env parser", () => {
           ],
         },
       });
+    });
+
+    test("that duplicate variable declarations cause an error to occur", () => {
+      const tokens: Token[] = [
+        {
+          type: TokenType.identifier,
+          position: 0,
+          line: 1,
+          column: 1,
+          length: 4,
+          value: "test",
+        },
+        {
+          type: TokenType.operator,
+          position: 4,
+          line: 1,
+          column: 5,
+          length: 1,
+          value: "=",
+        },
+        {
+          type: TokenType.newline,
+          position: 18,
+          line: 1,
+          column: 19,
+          length: 1,
+          value: "\n",
+        },
+
+        {
+          type: TokenType.identifier,
+          position: 19,
+          line: 2,
+          column: 1,
+          length: 4,
+          value: "test",
+        },
+        {
+          type: TokenType.operator,
+          position: 23,
+          line: 1,
+          column: 5,
+          length: 1,
+          value: "=",
+        },
+        {
+          type: TokenType.newline,
+          position: 24,
+          line: 1,
+          column: 19,
+          length: 1,
+          value: "\n",
+        },
+      ];
+
+      expect(
+        () => parseEnvTokens(tokens, options)
+      ).toThrow(`Duplicate variable declaration "test" at line 2 column 1`);
+    });
+
+    test("that duplicate variable declarations are allowed when `allowDuplicates` is true in options", () => {
+      const tokens: Token[] = [
+        {
+          type: TokenType.identifier,
+          position: 0,
+          line: 1,
+          column: 1,
+          length: 4,
+          value: "test",
+        },
+        {
+          type: TokenType.operator,
+          position: 4,
+          line: 1,
+          column: 5,
+          length: 1,
+          value: "=",
+        },
+        {
+          type: TokenType.newline,
+          position: 18,
+          line: 1,
+          column: 19,
+          length: 1,
+          value: "\n",
+        },
+
+        {
+          type: TokenType.identifier,
+          position: 19,
+          line: 2,
+          column: 1,
+          length: 4,
+          value: "test",
+        },
+        {
+          type: TokenType.operator,
+          position: 23,
+          line: 1,
+          column: 5,
+          length: 1,
+          value: "=",
+        },
+        {
+          type: TokenType.newline,
+          position: 24,
+          line: 1,
+          column: 19,
+          length: 1,
+          value: "\n",
+        },
+      ];
+      const optionsWithAllowDuplicates = {
+        ...options,
+        allowDuplicates: true
+      }
+      parseEnvTokens(tokens, optionsWithAllowDuplicates)
     });
   });
 });

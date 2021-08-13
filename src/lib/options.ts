@@ -14,6 +14,7 @@ export interface Options {
     distFilePath: string
     localFilePath: string
     prompts: boolean
+    allowDuplicates: boolean
     newlineType: NewlineType
 }
 
@@ -21,6 +22,7 @@ const defaultOptions: Options = {
     distFilePath: '.env.dist',
     localFilePath: '.env',
     prompts: true,
+    allowDuplicates: false,
     newlineType: NewlineType.unix
 }
 
@@ -61,6 +63,12 @@ const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>
     const isPrompts = name === '-p' || name === '--prompts'
     if (isPrompts) {
         options.prompts = getBooleanFromArgumentValue(value)
+        return
+    }
+
+    const isAllowDuplicates = name === '-a' || name === '--allowDuplicates'
+    if (isAllowDuplicates) {
+        options.allowDuplicates = getBooleanFromArgumentValue(value)
         return
     }
 
