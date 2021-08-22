@@ -13,9 +13,12 @@ import {
 } from "lib/env/parser";
 import { Render } from "lib/env/renderer";
 import fs from "fs";
+import path from "path";
 import { Options } from "lib/options";
+import { FileError, FileNotFoundError, LexicalError } from "./error";
 
 export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
+export type NodePath = Pick<typeof path, "resolve">
 
 const ENCODING = "utf8";
 
@@ -33,6 +36,8 @@ export class Merger implements MergerInterface {
   private render: Render
 
   private fs: NodeFs
+
+  private path: NodePath
 
   public setCliPrompter(cliPrompter: CliPrompterInterface): this {
     this.cliPrompter = cliPrompter
@@ -58,6 +63,11 @@ export class Merger implements MergerInterface {
     this.fs = fs
     return this
   }
+
+  public setPath(path: NodePath): this {
+    this.path = path
+    return this
+  }
   
   public async merge (options: Options) {
     const distDocument = this.parseDistDocument(options);
@@ -67,20 +77,20 @@ export class Merger implements MergerInterface {
     this.writeLocalEnvFile(options, mergedDocument);
   }
 
-  private analyzeDistEnvFile ({ distFilePath: path }: Options): Token[] {
+  private analyzeDistEnvFile (path: string): Token[] {
     const exists = this.fs.existsSync(path);
-    if (!exists) throw new Error(`Could not locate ${path}`);
+    if (!exists) throw new FileNotFoundError().setFilePath(path);
 
     const src = this.fs.readFileSync(path, { encoding: ENCODING }).toString();
-    return this.analyzeEnvSourceCode(src);
+    return this.analyzeEnvSourceCode(path, src);
   }
 
-  private analyzeLocalEnvFile ({ localFilePath: path }: Options): Token[] {
+  private analyzeLocalEnvFile (path: string): Token[] {
     const exists = this.fs.existsSync(path);
     if (!exists) return [];
 
     const src = this.fs.readFileSync(path, { encoding: ENCODING }).toString();
-    return this.analyzeEnvSourceCode(src);
+    return this.analyzeEnvSourceCode(path, src);
   }
 
   private writeLocalEnvFile (
@@ -88,6 +98,7 @@ export class Merger implements MergerInterface {
     document: ParsedEnvDocument
   ) {
     const fileContent = this.render(document.abstractSyntaxTree, options);
+    // TODO use resolved absolute path here
     this.fs.writeFileSync(options.localFilePath, fileContent, { encoding: ENCODING });
   }
 
@@ -130,13 +141,15 @@ export class Merger implements MergerInterface {
   }
 
   private parseDistDocument (options: Options): ParsedEnvDocument {
-    const tokens = this.analyzeDistEnvFile(options);
-    return this.parseEnvTokens(tokens, options);
+    const path = this.path.resolve(options.distFilePath)
+    const tokens = this.analyzeDistEnvFile(path);
+    return this.parseEnvTokens(path, tokens, options);
   }
 
   private parseLocalDocument (options: Options): ParsedEnvDocument {
-    const tokens = this.analyzeLocalEnvFile(options);
-    return this.parseEnvTokens(tokens, options);
+    const path = this.path.resolve(options.localFilePath)
+    const tokens = this.analyzeLocalEnvFile(path);
+    return this.parseEnvTokens(path, tokens, options);
   }
 }
 

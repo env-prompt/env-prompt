@@ -1,4 +1,5 @@
 import { QuoteType } from "lib/env/parser"
+import { FileCoordinates, LexicalError } from "./error"
 
 export enum TokenType {
     identifier = 'identifier',
@@ -27,17 +28,17 @@ const IDENTIFIER_START_EXPRESSION = /^[a-zA-Z]$/
 const IDENTIFIER_END_EXPRESSION = /^[^a-zA-Z0-9_-]$/
 
 export type AnalyzeEnvSourceCode = typeof analyzeEnvSourceCode
-export const analyzeEnvSourceCode = (src: string): Token[] => {
+export const analyzeEnvSourceCode = (path: string, src: string): Token[] => {
     const tokens: Token[] = []
     for (let i = 0; i < src.length;) {
-        const token = getTokenAtPosition(src, i, tokens)
+        const token = getTokenAtPosition(path, src, i, tokens)
         tokens.push(token)
         i += token.length
     }
     return tokens
 }
 
-const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Token => {
+const getTokenAtPosition = (path: string, src: string, position: number, tokens: Token[]): Token => {
     const firstChar = src[position]
 
     const [previousToken, secondPreviousToken] = getPreviousTwoNonWhitespaceTokens(tokens)
@@ -72,20 +73,14 @@ const getTokenAtPosition = (src: string, position: number, tokens: Token[]): Tok
     const isIdentifier = IDENTIFIER_START_EXPRESSION.test(firstChar)
     if (isIdentifier) return makeIdentifierToken(position, src, tokens)
 
-
     {
         const previousToken = getPreviousToken(tokens)
         const coordinates = getCoordinates(previousToken)
-        throw new Error(`Unrecognized token "${firstChar}" at position ${coordinates.position}, line ${coordinates.line}, col ${coordinates.column}.`)
+        throw new LexicalError().setChar(firstChar).setCoordinates(coordinates).setFilePath(path)
     }
 }
 
-interface TokenCoordinates {
-    line: number
-    column: number
-    position: number
-}
-const getCoordinates = (previousToken?: Token): TokenCoordinates => {
+const getCoordinates = (previousToken?: Token): FileCoordinates => {
     if (!previousToken) {
         return {
             line: 1,

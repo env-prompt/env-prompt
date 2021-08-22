@@ -1,5 +1,6 @@
-import { getColumn, getLine, Token, TokenType } from "lib/env/lexer"
+import { Token, TokenType } from "lib/env/lexer"
 import { Options } from "lib/options"
+import { DuplicateVariableError, ExpectedAssignmentAfterIdentifierError, InvalidTokenAfterCommentError, InvalidTokenAfterIdentifierError, UnexpectedTokenError } from "./error"
 
 export enum NodeType {
     literal = 'literal',
@@ -60,7 +61,7 @@ export interface ParsedEnvDocument {
 }
 
 export type ParseEnvTokens = typeof parseEnvTokens
-export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): ParsedEnvDocument => {
+export const parseEnvTokens = (path: string, tokens: Token[], { allowDuplicates }: Options): ParsedEnvDocument => {
     const document: DocumentNode = {
         type: NodeType.document,
         statements: []
@@ -115,7 +116,7 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
                 if (isCorrectlyTerminated) continue
             }
             
-            throw new Error(`Expected newline or end of document after comment ${getPositionDescription(firstToken)}.`)
+            throw new InvalidTokenAfterCommentError().setToken(firstToken).setFilePath(path)
         }
 
         const isVariableDeclaration = firstToken.type === TokenType.identifier
@@ -133,7 +134,7 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
             }
 
             const hasAssignmentOperator = nextNonWhitespaceToken && nextNonWhitespaceToken.type === TokenType.operator
-            if (!hasAssignmentOperator) throw new Error(`Expected = after variable "${variableName}" ${getPositionDescription(firstToken)}.`)
+            if (!hasAssignmentOperator) throw new ExpectedAssignmentAfterIdentifierError().setToken(firstToken).setFilePath(path)
 
             let value: LiteralNode | QuotedLiteralNode
             for (; i < tokens.length;) {
@@ -158,7 +159,8 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
 
                     if (isClosingQuote) continue
                     
-                    throw new Error(`Unexpected ${token.value} ${getPositionDescription(firstToken)}.`)
+                    // TODO is token right here?
+                    throw new UnexpectedTokenError().setToken(token).setFilePath(path)
                 }
 
                 const isLiteral = token.type === TokenType.literal
@@ -181,7 +183,7 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
                     break
                 }
 
-                throw new Error(`Expected line break or comment after variable declaration ${getPositionDescription(firstToken)}.`)
+                throw new InvalidTokenAfterIdentifierError().setToken(firstToken).setFilePath(path)
             }
 
             const variableDeclaration: VariableDeclarationNode = {
@@ -193,7 +195,7 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
                 value
             }
             const isAlreadyDefined = variableDeclaration.identifier.name in variablesByName
-            if (!allowDuplicates && isAlreadyDefined) throw new Error(`Duplicate variable declaration "${variableDeclaration.identifier.name}" ${getStartPositionDescription(firstToken)}`)
+            if (!allowDuplicates && isAlreadyDefined) throw new DuplicateVariableError().setToken(firstToken).setFilePath(path)
 
             variablesByName[variableDeclaration.identifier.name] = variableDeclaration
             document.statements.push(variableDeclaration)
@@ -206,8 +208,3 @@ export const parseEnvTokens = (tokens: Token[], { allowDuplicates }: Options): P
         abstractSyntaxTree: document
     }
 }
-
-const getNextLine = (token: Token): number => getLine([token])
-const getNextColumn = (token: Token): number => getColumn([token])
-const getPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token)}`
-const getStartPositionDescription = (token: Token): string => `at line ${getNextLine(token)} column ${getNextColumn(token) - token.length}`

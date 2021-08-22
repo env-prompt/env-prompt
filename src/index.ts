@@ -1,5 +1,6 @@
 import readline from "readline"
 import fs from "fs"
+import path from "path"
 import { getOptionsFromEnvironment } from "lib/options"
 import { StdIoReader } from "lib/std-io-reader"
 import { CliPrompter } from "lib/cli"
@@ -17,6 +18,7 @@ const merger = new Merger()
     .setParseEnvTokens(parseEnvTokens)
     .setRender(render)
     .setFs(fs)
+    .setPath(path)
 
 const main = async () => {
     try {
