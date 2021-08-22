@@ -4,8 +4,9 @@
   "description": "A dependency-free utility that prompts you for your project's environment variables.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --mode=development --watch",
-    "build-dist": "webpack --mode=production",
+    "start": "ts-node bin/build.ts --watch",
+    "build": "ts-node bin/build.ts --build",
+    "build:dist": "NODE_ENV=production ts-node bin/build.ts --build",
     "test:functional": "npx jest ./test/functional/test.ts",
     "test:unit": "npx jest ./test/unit",
     "release": "ts-node bin/release.ts"
@@ -34,13 +35,12 @@
   "devDependencies": {
     "@types/jest": "^26.0.15",
     "@types/node": "^14.11.2",
+    "chokidar": "^3.5.2",
+    "esbuild": "^0.12.21",
     "jest": "^26.4.2",
     "ts-jest": "^26.4.1",
-    "ts-loader": "^8.0.4",
     "ts-node": "^9.0.0",
     "tsconfig-paths-webpack-plugin": "^3.3.0",
-    "typescript": "^4.0.0",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.3.12"
+    "typescript": "^4.0.0"
   }
 }
