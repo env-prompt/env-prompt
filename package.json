@@ -7,8 +7,8 @@
     "start": "ts-node bin/build.ts --watch",
     "build": "ts-node bin/build.ts --build",
     "build:dist": "NODE_ENV=production ts-node bin/build.ts --build",
-    "test:functional": "npx jest ./test/functional/test.ts",
-    "test:unit": "npx jest ./test/unit",
+    "test:automated": "npx jest --config=jest.automated.config.js",
+    "test:unit": "npx jest --config=jest.unit.config.js",
     "release": "ts-node bin/release.ts"
   },
   "repository": {
