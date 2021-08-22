@@ -23,8 +23,8 @@ describe('non-working scenarios', () => {
             expect(testableProcess.exitCode).toBe(1)
             expect(testableProcess.streamTransmissionCount()).toBe(1)
             expect(testableProcess.streamTransmissionNumber(1).type).toBe(StreamType.stdErr)
-            expect(testableProcess.streamTransmissionNumber(1).content).toBe(
-                `\u001b[31m${'ERROR: Could not locate .env.dist'}\u001b[0m\n`
+            expect(testableProcess.streamTransmissionNumber(1).content).toMatch(
+                /^\u001b\[31mCould not locate (?:\/private)?\/tmp\/env-prompt-no-args-no-dist-file\/\.env.dist\u001b\[0m\n$/
             )
 
             expect(Testable.directory(cwd).file(defaultDistributedFilePath).exists()).toBe(false)
@@ -53,8 +53,8 @@ describe('non-working scenarios', () => {
             expect(testableProcess.exitCode).toBe(1)
             expect(testableProcess.streamTransmissionCount()).toBe(1)
             expect(testableProcess.streamTransmissionNumber(1).type).toBe(StreamType.stdErr)
-            expect(testableProcess.streamTransmissionNumber(1).content).toBe(
-                `\u001b[31m${'ERROR: Could not locate My_CuSt0MF1ll33'}\u001b[0m\n`
+            expect(testableProcess.streamTransmissionNumber(1).content).toMatch(
+                /^\u001b\[31mCould not locate (?:\/private)?\/tmp\/env-prompt-missing-dist-file\/My_CuSt0MF1ll33\u001b\[0m\n$/
             )
 
             expect(Testable.directory(cwd).file(distributedFilePath).exists()).toBe(false)

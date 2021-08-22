@@ -3,22 +3,25 @@ import { analyzeEnvSourceCode, Token, TokenType } from "../../../../src/lib/env/
 describe('.env lexer', () => {
   describe('comments', () => {
     test('that no tokens are analyzed from empty files', () => {
+      const path = '/path/to/.env'
       const envFile = ''
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([])
     })
 
     test('that comments with no body are analyzed', () => {
+      const path = '/path/to/.env'
       const envFile = '#'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'comment', position: 0, line: 1, column: 1, length: 1, value: '#' }
       ] as Token[])
     })
 
     test('that comments with a body are analyzed', () => {
+      const path = '/path/to/.env'
       const envFile = '# hello world'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'comment', position: 0, line: 1, column: 1, length: 1, value: '#' },
         { type: 'commentBody', position: 1, line: 1, column: 2, length: 12, value: ' hello world' }
@@ -26,8 +29,9 @@ describe('.env lexer', () => {
     })
 
     test("that comment bodies don't need to start with a white space", () => {
+      const path = '/path/to/.env'
       const envFile = '#lol'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'comment', position: 0, line: 1, column: 1, length: 1, value: '#' },
         { type: 'commentBody', position: 1, line: 1, column: 2, length: 3, value: 'lol' }
@@ -35,8 +39,9 @@ describe('.env lexer', () => {
     })
 
     test('that comments can come after spaces', () => {
+      const path = '/path/to/.env'
       const envFile = '    #comment after space'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'whitespace', position: 0, line: 1, column: 1, length: 1, value: ' ' },
         { type: 'whitespace', position: 1, line: 1, column: 2, length: 1, value: ' ' },
@@ -48,10 +53,11 @@ describe('.env lexer', () => {
     })
 
     test('that comments only span one line', () => {
+      const path = '/path/to/.env'
       const envFile =
         `# hello world
 test`
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'comment', position: 0, line: 1, column: 1, length: 1, value: '#' },
         { type: 'commentBody', position: 1, line: 1, column: 2, length: 12, value: ' hello world' },
@@ -61,8 +67,9 @@ test`
     })
 
     test('that comments can come after other tokens', () => {
+      const path = '/path/to/.env'
       const envFile = 'test # comment that is after'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 4, value: 'test' },
         { type: 'whitespace', position: 4, line: 1, column: 5, length: 1, value: ' ' },
@@ -74,8 +81,9 @@ test`
 
   describe('variable assignment', () => {
     test('identifiers can be assigned to simple literals', () => {
+      const path = '/path/to/.env'
       const envFile = 'foo=bar'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 3, value: 'foo' },
         { type: 'operator', position: 3, line: 1, column: 4, length: 1, value: '=' },
@@ -84,8 +92,9 @@ test`
     })
 
     test('that values can be single quoted', () => {
+      const path = '/path/to/.env'
       const envFile = `this='has "double quotes" in the value'`
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 4, value: 'this' },
         { type: 'operator', position: 4, line: 1, column: 5, length: 1, value: '=' },
@@ -96,13 +105,14 @@ test`
     })
 
     test('that multi-line values can be double quoted', () => {
+      const path = '/path/to/.env'
       const envFile =
         `this="{
     is: {
         a: ['multi-line', 'json', 'string']
     }
 }"`
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 4, value: 'this' },
         { type: 'operator', position: 4, line: 1, column: 5, length: 1, value: '=' },
@@ -113,10 +123,11 @@ test`
     })
 
     test('that comments cannot exist in quoted literals', () => {
+      const path = '/path/to/.env'
       const envFile =
         `valA="#a comment"
 valB='# another one'`
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 4, value: 'valA' },
         { type: 'operator', position: 4, line: 1, column: 5, length: 1, value: '=' },
@@ -133,8 +144,9 @@ valB='# another one'`
     })
 
     test('that comments can exist on the same line as a variable assignment', () => {
+      const path = '/path/to/.env'
       const envFile = 'foo=bar # hello world'
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 3, value: 'foo' },
         { type: 'operator', position: 3, line: 1, column: 4, length: 1, value: '=' },
@@ -146,10 +158,11 @@ valB='# another one'`
     })
 
     test('that newlines terminate variable assignment when the literal value is unqouted', () => {
+      const path = '/path/to/.env'
       const envFile =
         `foo=test123
 bar=test456`
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         { type: 'identifier', position: 0, line: 1, column: 1, length: 3, value: 'foo' },
         { type: 'operator', position: 3, line: 1, column: 4, length: 1, value: '=' },
@@ -162,6 +175,7 @@ bar=test456`
     })
 
     test('that quoted values can be empty', () => {
+      const path = '/path/to/.env'
       const envFile = `emptyUnquoted=
 emptySingleQuoted=''
 emptyDoubleQuoted=""
@@ -169,7 +183,7 @@ fullUnquoted=hello
 fullSingleQuoted='some stuff'
 fullDoubleQuoted="some other stuff"
 `
-      const tokens = analyzeEnvSourceCode(envFile)
+      const tokens = analyzeEnvSourceCode(path, envFile)
       expect(tokens).toEqual([
         {
           type: TokenType.identifier,
@@ -408,9 +422,10 @@ fullDoubleQuoted="some other stuff"
   })
 
   test('that quotes in literals can be escaped', () => {
+    const path = '/path/to/.env'
     const envFile = `escapedDouble="this has \\"escaped\\" dobule quotes"
 escapedSingle='this has \\'escaped\\' single quotes'`
-    const tokens = analyzeEnvSourceCode(envFile)
+    const tokens = analyzeEnvSourceCode(path, envFile)
     expect(tokens).toEqual([
       {
         type: TokenType.identifier,
@@ -504,9 +519,10 @@ escapedSingle='this has \\'escaped\\' single quotes'`
   })
 
   test('that windows CRLF newlines can be used', () => {
+    const path = '/path/to/.env'
     const envFile = '# some comment\r\n'
       + 'some=value\r\n'
-    const tokens = analyzeEnvSourceCode(envFile)
+    const tokens = analyzeEnvSourceCode(path, envFile)
     expect(tokens).toEqual([
       {
         type: TokenType.comment,
@@ -568,9 +584,10 @@ escapedSingle='this has \\'escaped\\' single quotes'`
   })
 
   test('that CR newlines can be used', () => {
+    const path = '/path/to/.env'
     const envFile = '# some comment\r'
       + 'some=value\r'
-    const tokens = analyzeEnvSourceCode(envFile)
+    const tokens = analyzeEnvSourceCode(path, envFile)
     expect(tokens).toEqual([
       {
         type: TokenType.comment,

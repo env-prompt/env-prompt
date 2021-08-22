@@ -1,4 +1,5 @@
 import { StdIoReaderInterface } from "lib/std-io-reader"
+import { getMessageForError } from "./env/error"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
@@ -45,7 +46,8 @@ export class CliPrompter implements CliPrompterInterface {
     }
 
     public printError(error: Error) {
-        this.console.error(fgRed(`ERROR: ${error.message}`))
+        const message = getMessageForError(error)
+        this.console.error(fgRed(message))
     }
 
     public printWarning(warning: string) {

@@ -4,20 +4,25 @@ import {
 } from "../../../../src/lib/env/parser";
 import { Token, TokenType } from "../../../../src/lib/env/lexer";
 import { NewlineType, Options } from "../../../../src/lib/options";
+import { DuplicateVariableError, ExpectedAssignmentAfterIdentifierError, InvalidTokenAfterCommentError, UnexpectedTokenError } from "../../../../src/lib/env/error";
 
 describe(".env parser", () => {
+  let path
   let options: Options
-  beforeEach(() => options = {
-    distFilePath: '.env.dist',
-    localFilePath: '.env',
-    prompts: true,
-    allowDuplicates: false,
-    newlineType: NewlineType.unix
+  beforeEach(() => {
+    path = '/path/to/.env'
+    options = {
+      distFilePath: '.env.dist',
+      localFilePath: '.env',
+      prompts: true,
+      allowDuplicates: false,
+      newlineType: NewlineType.unix
+    }
   })
 
   test("that an empty document is parsed when there are no tokens", () => {
     const tokens: Token[] = [];
-    const document = parseEnvTokens(tokens, options);
+    const document = parseEnvTokens(path, tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: { type: "document", statements: [] },
@@ -35,7 +40,7 @@ describe(".env parser", () => {
         value: " ",
       },
     ];
-    const document = parseEnvTokens(tokens, options);
+    const document = parseEnvTokens(path, tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: { type: "document", statements: [] },
@@ -53,7 +58,7 @@ describe(".env parser", () => {
         value: "\n",
       },
     ];
-    const document = parseEnvTokens(tokens, options);
+    const document = parseEnvTokens(path, tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -74,7 +79,7 @@ describe(".env parser", () => {
         value: "#",
       },
     ];
-    const document = parseEnvTokens(tokens, options);
+    const document = parseEnvTokens(path, tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -103,7 +108,7 @@ describe(".env parser", () => {
         value: "hello",
       },
     ];
-    const document = parseEnvTokens(tokens, options);
+    const document = parseEnvTokens(path, tokens, options);
     expect(document).toEqual({
       variablesByName: {},
       abstractSyntaxTree: {
@@ -132,13 +137,29 @@ describe(".env parser", () => {
         value: "#",
       },
     ];
-    expect(() => parseEnvTokens(tokens, options)).toThrow(
-      "Expected newline or end of document after comment at line 1 column 2."
-    );
+    let error: InvalidTokenAfterCommentError
+    try {
+      parseEnvTokens(path, tokens, options)
+    } catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(InvalidTokenAfterCommentError)
+
+    const commentToken: Token = {
+      type: TokenType.comment,
+      position: 0,
+      line: 1,
+      column: 1,
+      length: 1,
+      value: '#'
+    }
+    expect(error.getToken()).toEqual(commentToken)
+    expect(error.getFilePath()).toBe('/path/to/.env')
   });
 
   describe("variable declaration", () => {
     test("that lone identifiers are not valid", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -149,12 +170,29 @@ describe(".env parser", () => {
           value: "foo",
         },
       ];
-      expect(() => parseEnvTokens(tokens, options)).toThrow(
-        'Expected = after variable "foo" at line 1 column 4.'
-      );
+
+      let error: ExpectedAssignmentAfterIdentifierError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
+
+      expect(error).toBeInstanceOf(ExpectedAssignmentAfterIdentifierError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 3,
+        value: 'foo'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
     test("that identifiers can only be followed by assignment operators", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -173,12 +211,28 @@ describe(".env parser", () => {
           value: '"',
         },
       ];
-      expect(() => parseEnvTokens(tokens, options)).toThrow(
-        'Expected = after variable "foo" at line 1 column 4.'
-      );
+
+      let error: ExpectedAssignmentAfterIdentifierError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
+      expect(error).toBeInstanceOf(ExpectedAssignmentAfterIdentifierError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 3,
+        value: 'foo'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
     test("that variables can be declared without a value", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -197,7 +251,7 @@ describe(".env parser", () => {
           value: "=",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -219,6 +273,7 @@ describe(".env parser", () => {
     });
 
     test("that variables can be declared with a value", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -245,7 +300,7 @@ describe(".env parser", () => {
           value: "john",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
       expect(document).toEqual({
         variablesByName: {
           name: {
@@ -268,6 +323,7 @@ describe(".env parser", () => {
     });
 
     test("that assignment operators can be padded with spaces", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -302,7 +358,7 @@ describe(".env parser", () => {
           value: " ",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
       expect(document).toEqual({
         variablesByName: {
           name: {
@@ -323,6 +379,7 @@ describe(".env parser", () => {
     });
 
     test("that literals can be double quoted", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -365,7 +422,7 @@ describe(".env parser", () => {
           value: '"',
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -397,6 +454,7 @@ describe(".env parser", () => {
     });
 
     test("that literals can be single quoted", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -439,7 +497,7 @@ describe(".env parser", () => {
           value: "'",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -471,6 +529,7 @@ describe(".env parser", () => {
     });
 
     test("that comments can exist with no body", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -513,7 +572,7 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -539,6 +598,7 @@ describe(".env parser", () => {
     });
 
     test("that comments with a body can be terminated with a newline", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -581,7 +641,7 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
-      const document = parseEnvTokens(tokens, options);
+      const document = parseEnvTokens(path, tokens, options);
 
       expect(document).toEqual({
         variablesByName: {
@@ -605,6 +665,7 @@ describe(".env parser", () => {
     });
 
     test("that duplicate variable declarations cause an error to occur", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -656,13 +717,29 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
+      
+      let error: DuplicateVariableError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
 
-      expect(
-        () => parseEnvTokens(tokens, options)
-      ).toThrow(`Duplicate variable declaration "test" at line 2 column 1`);
+      expect(error).toBeInstanceOf(DuplicateVariableError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 19,
+        line: 2,
+        column: 1,
+        length: 4,
+        value: 'test'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
     test("that duplicate variable declarations are allowed when `allowDuplicates` is true in options", () => {
+      const path = '/path/to/.env'
       const tokens: Token[] = [
         {
           type: TokenType.identifier,
@@ -718,7 +795,7 @@ describe(".env parser", () => {
         ...options,
         allowDuplicates: true
       }
-      parseEnvTokens(tokens, optionsWithAllowDuplicates)
+      parseEnvTokens(path, tokens, optionsWithAllowDuplicates)
     });
   });
 });

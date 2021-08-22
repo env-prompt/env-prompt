@@ -1,3 +1,4 @@
+import { InvalidArgumentError, InvalidNewlineTypeError } from "../../../src/lib/env/error";
 import { getOptionsFromEnvironment, ProcessDependencies, Options, NewlineType } from "../../../src/lib/options";
 
 describe("options", () => {
@@ -290,7 +291,13 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid newline type. Valid types: "unix", "windows"');
+        let error: InvalidNewlineTypeError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidNewlineTypeError)
     });
 
     test('that -n can only be set to "windows" or "unix"', () => {
@@ -303,7 +310,13 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid newline type. Valid types: "unix", "windows"');
+        let error: InvalidNewlineTypeError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidNewlineTypeError)
     });
 
     test('that only documented CLI arguments are allowed', () => {
@@ -316,7 +329,14 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid argument --someUnacceptedArgument');
+        let error: InvalidArgumentError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidArgumentError)
+        expect(error.getArgumentName()).toBe('--someUnacceptedArgument')
     });
 
     test('that -a sets the allowDuplicates option to true', () => {

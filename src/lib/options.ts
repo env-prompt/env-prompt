@@ -1,3 +1,5 @@
+import { InvalidArgumentError, InvalidNewlineTypeError } from "./env/error"
+
 type RawArgument = string
 type ArgumentName = string
 type ArgumentValue = string | boolean
@@ -76,13 +78,13 @@ const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>
     if (isNewlineType) {
         const validTypes = Object.values(NewlineType)
         const isValid = validTypes.find(type => type === value)
-        if (!isValid) throw new Error(`Invalid newline type. Valid types: "${validTypes.join('", "')}"`)
+        if (!isValid) throw new InvalidNewlineTypeError()
 
         options.newlineType = value as NewlineType
         return
     }
 
-    throw new Error(`Invalid argument ${name}`)
+    throw new InvalidArgumentError().setArgumentName(name)
 }
 
 const mapProcessEnvVariableToOptions = ([name, value]: ProcessEnvVariable, options: Partial<Options>) => {

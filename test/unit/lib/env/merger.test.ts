@@ -10,7 +10,8 @@ import {
   QuoteType,
 } from "../../../../src/lib/env/parser";
 import { NewlineType, Options } from "../../../../src/lib/options";
-import { MergerInterface, NodeFs, Merger } from "../../../../src/lib/env/merger";
+import { MergerInterface, NodeFs, NodePath, Merger } from "../../../../src/lib/env/merger";
+import { FileNotFoundError } from "../../../../src/lib/env/error";
 
 type MockedObject<T> = Partial<Record<keyof T, jest.Mock>>;
 
@@ -20,6 +21,7 @@ describe(".env merger", () => {
   let parseEnvTokens: jest.Mock;
   let render: jest.Mock;
   let fs: MockedObject<NodeFs>;
+  let path: MockedObject<NodePath>;
   let merger: MergerInterface;
   beforeEach(() => {
     cliPrompter = {
@@ -36,15 +38,20 @@ describe(".env merger", () => {
       readFileSync: jest.fn(),
       writeFileSync: jest.fn(),
     };
+    path = {
+      resolve: jest.fn()
+    }
     merger = new Merger()
       .setCliPrompter(cliPrompter as CliPrompterInterface)
       .setAnalyzeEnvSourceCode(analyzeEnvSourceCode)
       .setParseEnvTokens(parseEnvTokens)
       .setRender(render)
       .setFs(fs as NodeFs)
+      .setPath(path as NodePath)
   });
 
   test("that merging fails when the dist file does not exist", async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(false);
     const options: Options = {
       distFilePath: ".env.dist",
@@ -53,13 +60,21 @@ describe(".env merger", () => {
       allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
-    const execution = async () => await merger.merge(options);
-    await expect(execution).rejects.toThrow("Could not locate .env.dist");
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"]]);
+    let error: FileNotFoundError
+    try {
+      await merger.merge(options);
+    } catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(FileNotFoundError)
+    expect(error.getFilePath()).toBe('/path/to/.env.dist')
+    expect(path.resolve.mock.calls).toEqual([[".env.dist"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"]]);
   });
 
   test("that variables only present in .env.dist are added to .env", async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     fs.readFileSync.mockReturnValueOnce("foo=bar");
     const distTokens: Token[] = [
@@ -121,6 +136,7 @@ describe(".env merger", () => {
       },
     };
     parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
     fs.existsSync.mockReturnValueOnce(false);
     const localDocument: ParsedEnvDocument = {
       variablesByName: {},
@@ -144,9 +160,9 @@ describe(".env merger", () => {
     };
     await merger.merge(options);
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
-      [".env.dist", { encoding: "utf8" }],
+      ["/path/to/.env.dist", { encoding: "utf8" }],
     ]);
     expect(cliPrompter.promptUserAboutNewVariables.mock.calls).toEqual([[]]);
     expect(cliPrompter.promptUserForEnvironmentVariable.mock.calls).toEqual([
@@ -178,6 +194,7 @@ describe(".env merger", () => {
   });
 
   test("that distributed variables with no value can be prompted", async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     fs.readFileSync.mockReturnValueOnce("foo=");
     const distTokens: Token[] = [
@@ -225,6 +242,7 @@ describe(".env merger", () => {
       },
     };
     parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
     fs.existsSync.mockReturnValueOnce(false);
     const localDocument: ParsedEnvDocument = {
       variablesByName: {},
@@ -248,9 +266,9 @@ describe(".env merger", () => {
     };
     await merger.merge(options);
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
-      [".env.dist", { encoding: "utf8" }],
+      ["/path/to/.env.dist", { encoding: "utf8" }],
     ]);
     expect(cliPrompter.promptUserAboutNewVariables.mock.calls).toEqual([[]]);
     expect(cliPrompter.promptUserForEnvironmentVariable.mock.calls).toEqual([
@@ -282,6 +300,7 @@ describe(".env merger", () => {
   });
 
   test("that the user isn't prompted for variables they already have in .env", async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     fs.readFileSync.mockReturnValueOnce("foo=bar");
     const distTokens: Token[] = [
@@ -343,6 +362,7 @@ describe(".env merger", () => {
       },
     };
     parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
 
     fs.existsSync.mockReturnValueOnce(true);
     fs.readFileSync.mockReturnValueOnce("foo=already exists");
@@ -416,10 +436,10 @@ describe(".env merger", () => {
     };
     await merger.merge(options);
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
-      [".env.dist", { encoding: "utf8" }],
-      [".env", { encoding: "utf8" }],
+      ["/path/to/.env.dist", { encoding: "utf8" }],
+      ["/path/to/.env", { encoding: "utf8" }],
     ]);
     const abstractSyntaxTree: DocumentNode = {
       type: NodeType.document,
@@ -444,6 +464,7 @@ describe(".env merger", () => {
   });
 
   test('that empty quoted values from .env.dist are added to .env', async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     fs.readFileSync.mockReturnValueOnce(`lorem=""`);
     const distTokens: Token[] = [
@@ -515,6 +536,7 @@ describe(".env merger", () => {
       },
     }
     parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
     fs.existsSync.mockReturnValueOnce(false);
     const localDocument: ParsedEnvDocument = {
       variablesByName: {},
@@ -535,13 +557,16 @@ describe(".env merger", () => {
     };
     await merger.merge(options)
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
-      [".env.dist", { encoding: "utf8" }],
+      ["/path/to/.env.dist", { encoding: "utf8" }],
     ]);
-    expect(analyzeEnvSourceCode.mock.calls).toEqual([[`lorem=""`]])
+    expect(analyzeEnvSourceCode.mock.calls).toEqual([["/path/to/.env.dist", `lorem=""`]])
     const localTokens: Token[] = []
-    expect(parseEnvTokens.mock.calls).toEqual([[distTokens, options], [localTokens, options]])
+    expect(parseEnvTokens.mock.calls).toEqual([
+      ['/path/to/.env.dist', distTokens, options],
+      ['/path/to/.env', localTokens, options]
+    ])
     const mergedAst: DocumentNode = {
       type: NodeType.document,
       statements: [
@@ -561,7 +586,8 @@ describe(".env merger", () => {
     expect(fs.writeFileSync.mock.calls).toEqual([['.env', 'lorem=\n', { encoding: 'utf8' }]])
   })
 
-  test('that empty quoted values from .env.dist are added to .env', async () => {
+  test('that literals containing both double and single quotes are properly escaped', async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     const distEnvCode = `singleOnly="some 'single' quotes"
 doubleOnly='some "double" quotes'
@@ -812,6 +838,7 @@ both="some 'single' and \\"double \\" quotes"`
       },
     }
     parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
     fs.existsSync.mockReturnValueOnce(false);
     const localDocument: ParsedEnvDocument = {
       variablesByName: {},
@@ -836,13 +863,17 @@ both="some 'single' and \\"double \\" quotes"
     };
     await merger.merge(options)
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"], [".env"]]);
+    expect(path.resolve.mock.calls).toEqual([['.env.dist'], ['.env']])
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
     expect(fs.readFileSync.mock.calls).toEqual([
-      [".env.dist", { encoding: "utf8" }],
+      ["/path/to/.env.dist", { encoding: "utf8" }],
     ]);
-    expect(analyzeEnvSourceCode.mock.calls).toEqual([[ distEnvCode ]])
+    expect(analyzeEnvSourceCode.mock.calls).toEqual([[ "/path/to/.env.dist", distEnvCode ]])
     const localTokens: Token[] = []
-    expect(parseEnvTokens.mock.calls).toEqual([[distTokens, options], [localTokens, options]])
+    expect(parseEnvTokens.mock.calls).toEqual([
+      ["/path/to/.env.dist", distTokens, options],
+      ["/path/to/.env", localTokens, options]
+    ])
     const mergedAst: DocumentNode = {
       type: NodeType.document,
       statements: [
