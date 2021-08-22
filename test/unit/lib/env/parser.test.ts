@@ -4,6 +4,7 @@ import {
 } from "../../../../src/lib/env/parser";
 import { Token, TokenType } from "../../../../src/lib/env/lexer";
 import { NewlineType, Options } from "../../../../src/lib/options";
+import { DuplicateVariableError, ExpectedAssignmentAfterIdentifierError, InvalidTokenAfterCommentError, UnexpectedTokenError } from "../../../../src/lib/env/error";
 
 describe(".env parser", () => {
   let path
@@ -117,8 +118,7 @@ describe(".env parser", () => {
     } as ParsedEnvDocument);
   });
 
-  // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-  test.skip("that a comment must be terminated by a newline or end of document", () => {
+  test("that a comment must be terminated by a newline or end of document", () => {
     const tokens: Token[] = [
       {
         type: TokenType.comment,
@@ -137,14 +137,28 @@ describe(".env parser", () => {
         value: "#",
       },
     ];
-    expect(() => parseEnvTokens(path, tokens, options)).toThrow(
-      "Expected newline or end of document after comment at line 1 column 2."
-    );
+    let error: InvalidTokenAfterCommentError
+    try {
+      parseEnvTokens(path, tokens, options)
+    } catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(InvalidTokenAfterCommentError)
+
+    const commentToken: Token = {
+      type: TokenType.comment,
+      position: 0,
+      line: 1,
+      column: 1,
+      length: 1,
+      value: '#'
+    }
+    expect(error.getToken()).toEqual(commentToken)
+    expect(error.getFilePath()).toBe('/path/to/.env')
   });
 
   describe("variable declaration", () => {
-    // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-    test.skip("that lone identifiers are not valid", () => {
+    test("that lone identifiers are not valid", () => {
       const path = '/path/to/.env'
       const tokens: Token[] = [
         {
@@ -156,13 +170,28 @@ describe(".env parser", () => {
           value: "foo",
         },
       ];
-      expect(() => parseEnvTokens(path, tokens, options)).toThrow(
-        'Expected = after variable "foo" at line 1 column 4.'
-      );
+
+      let error: ExpectedAssignmentAfterIdentifierError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
+
+      expect(error).toBeInstanceOf(ExpectedAssignmentAfterIdentifierError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 3,
+        value: 'foo'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
-    // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-    test.skip("that identifiers can only be followed by assignment operators", () => {
+    test("that identifiers can only be followed by assignment operators", () => {
       const path = '/path/to/.env'
       const tokens: Token[] = [
         {
@@ -182,9 +211,24 @@ describe(".env parser", () => {
           value: '"',
         },
       ];
-      expect(() => parseEnvTokens(path, tokens, options)).toThrow(
-        'Expected = after variable "foo" at line 1 column 4.'
-      );
+
+      let error: ExpectedAssignmentAfterIdentifierError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
+      expect(error).toBeInstanceOf(ExpectedAssignmentAfterIdentifierError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 3,
+        value: 'foo'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
     test("that variables can be declared without a value", () => {
@@ -620,8 +664,7 @@ describe(".env parser", () => {
       });
     });
 
-    // TODO upgrade ts jest and fix this test
-    test.skip("that duplicate variable declarations cause an error to occur", () => {
+    test("that duplicate variable declarations cause an error to occur", () => {
       const path = '/path/to/.env'
       const tokens: Token[] = [
         {
@@ -674,10 +717,25 @@ describe(".env parser", () => {
           value: "\n",
         },
       ];
+      
+      let error: DuplicateVariableError
+      try {
+        parseEnvTokens(path, tokens, options)
+      } catch (e) {
+        error = e
+      }
 
-      expect(
-        () => parseEnvTokens(path, tokens, options)
-      ).toThrow(`Duplicate variable declaration "test" at line 2 column 1`);
+      expect(error).toBeInstanceOf(DuplicateVariableError)
+      const identifierToken: Token = {
+        type: TokenType.identifier,
+        position: 19,
+        line: 2,
+        column: 1,
+        length: 4,
+        value: 'test'
+      }
+      expect(error.getToken()).toEqual(identifierToken)
+      expect(error.getFilePath()).toBe('/path/to/.env')
     });
 
     test("that duplicate variable declarations are allowed when `allowDuplicates` is true in options", () => {

@@ -1,3 +1,4 @@
+import { InvalidArgumentError, InvalidNewlineTypeError } from "../../../src/lib/env/error";
 import { getOptionsFromEnvironment, ProcessDependencies, Options, NewlineType } from "../../../src/lib/options";
 
 describe("options", () => {
@@ -280,8 +281,7 @@ describe("options", () => {
         expect(options).toEqual({ distFilePath: '.env.dist', localFilePath: '.env', prompts: true, allowDuplicates: false, newlineType: NewlineType.unix } as Options)
     });
 
-    // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-    test.skip('that --newlineType can only be set to "windows" or "unix"', () => {
+    test('that --newlineType can only be set to "windows" or "unix"', () => {
         const process: ProcessDependencies = {
             argv: [
                 '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
@@ -291,11 +291,16 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid newline type. Valid types: "unix", "windows"');
+        let error: InvalidNewlineTypeError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidNewlineTypeError)
     });
 
-    // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-    test.skip('that -n can only be set to "windows" or "unix"', () => {
+    test('that -n can only be set to "windows" or "unix"', () => {
         const process: ProcessDependencies = {
             argv: [
                 '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
@@ -305,11 +310,16 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid newline type. Valid types: "unix", "windows"');
+        let error: InvalidNewlineTypeError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidNewlineTypeError)
     });
 
-    // TODO upgrade ts jest and fix this test re: (intermediate value).setToken is not a function
-    test.skip('that only documented CLI arguments are allowed', () => {
+    test('that only documented CLI arguments are allowed', () => {
         const process: ProcessDependencies = {
             argv: [
                 '/home/bkotos/.nvm/versions/node/v12.18.0/bin/node',
@@ -319,7 +329,14 @@ describe("options", () => {
             env: {},
             platform: 'win32'
         }
-        expect(() => getOptionsFromEnvironment(process)).toThrow('Invalid argument --someUnacceptedArgument');
+        let error: InvalidArgumentError
+        try {
+            getOptionsFromEnvironment(process)
+        } catch (e) {
+            error = e
+        }
+        expect(error).toBeInstanceOf(InvalidArgumentError)
+        expect(error.getArgumentName()).toBe('--someUnacceptedArgument')
     });
 
     test('that -a sets the allowDuplicates option to true', () => {

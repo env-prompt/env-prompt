@@ -11,6 +11,7 @@ import {
 } from "../../../../src/lib/env/parser";
 import { NewlineType, Options } from "../../../../src/lib/options";
 import { MergerInterface, NodeFs, NodePath, Merger } from "../../../../src/lib/env/merger";
+import { FileNotFoundError } from "../../../../src/lib/env/error";
 
 type MockedObject<T> = Partial<Record<keyof T, jest.Mock>>;
 
@@ -49,8 +50,8 @@ describe(".env merger", () => {
       .setPath(path as NodePath)
   });
 
-  // TODO upgrade ts jest and fix this test
-  test.skip("that merging fails when the dist file does not exist", async () => {
+  test("that merging fails when the dist file does not exist", async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(false);
     const options: Options = {
       distFilePath: ".env.dist",
@@ -59,10 +60,17 @@ describe(".env merger", () => {
       allowDuplicates: false,
       newlineType: NewlineType.unix,
     };
-    const execution = async () => await merger.merge(options);
-    await expect(execution).rejects.toThrow("Could not locate .env.dist");
 
-    expect(fs.existsSync.mock.calls).toEqual([[".env.dist"]]);
+    let error: FileNotFoundError
+    try {
+      await merger.merge(options);
+    } catch (e) {
+      error = e
+    }
+    expect(error).toBeInstanceOf(FileNotFoundError)
+    expect(error.getFilePath()).toBe('/path/to/.env.dist')
+    expect(path.resolve.mock.calls).toEqual([[".env.dist"]]);
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"]]);
   });
 
   test("that variables only present in .env.dist are added to .env", async () => {
@@ -578,8 +586,7 @@ describe(".env merger", () => {
     expect(fs.writeFileSync.mock.calls).toEqual([['.env', 'lorem=\n', { encoding: 'utf8' }]])
   })
 
-  // TODO rename this test
-  test('that empty quoted values from .env.dist are added to .env', async () => {
+  test('that literals containing both double and single quotes are properly escaped', async () => {
     path.resolve.mockReturnValueOnce('/path/to/.env.dist')
     fs.existsSync.mockReturnValueOnce(true);
     const distEnvCode = `singleOnly="some 'single' quotes"

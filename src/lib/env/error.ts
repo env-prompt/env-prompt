@@ -7,7 +7,16 @@ export interface FileCoordinates {
     position: number // TODO get rid of?
 }
 
-export abstract class FileError extends Error {
+// Ts-jest doesn't support extending Error, so instead we have to implement it.
+// Otherwise, we get this error thrown in our tests when trying to call
+//  setters on subclasses of Error: "(intermediate value).setToken is not a function"
+//
+// This is only an issue with ts-jest, but works fine in the code compiled by esbuild.
+export abstract class FileError implements Error {
+    public readonly name: string = ''
+    
+    public readonly message: string = ''
+
     protected filePath: string
 
     public setFilePath(filePath: string): this {
@@ -64,7 +73,11 @@ export class UnexpectedTokenError extends ParseError {}
 export class InvalidTokenAfterIdentifierError extends ParseError {}
 export class DuplicateVariableError extends ParseError {}
 
-export class InvalidArgumentError extends Error {
+export class InvalidArgumentError implements Error {
+    public readonly name: string = ''
+
+    public readonly message: string = ''
+
     protected argumentName: string
 
     public setArgumentName(argumentName: string): this {
@@ -91,7 +104,7 @@ export const getMessageForError = (error: Error): string => {
     const isInvalidArgumentError = error instanceof InvalidArgumentError
     if (isInvalidArgumentError) return getMessageForInvalidArgumentError(error as InvalidArgumentError)
 
-    return `ERROR: ${error.message}`
+    return `ERROR: ${(error).message}`
 }
 
 const getMessageForFileNotFoundError = (error: FileNotFoundError): string => {
