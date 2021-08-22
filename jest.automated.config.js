@@ -4,7 +4,7 @@ const { compilerOptions } = require('./tsconfig.json')
 module.exports = {
   rootDir: __dirname,
   testMatch: [
-      '<rootDir>/test/functional/test.ts'
+      '<rootDir>/test/automated/test.ts'
   ],
   preset: 'ts-jest',
   testEnvironment: 'node',
