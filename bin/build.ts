@@ -6,15 +6,23 @@ import * as chokidar from 'chokidar'
 import tsconfig from '../tsconfig.json'
 import { TextEncoder } from 'util'
 
-const isProduction = process.env.NODE_ENV === 'production'
+const isProduction = process.argv.includes('--env=production')
 const entryPoint = path.resolve(__dirname, '../src/index.ts')
-const outfile = path.resolve(__dirname, '../dist/index.js')
+const outDir = path.resolve(__dirname, '../dist')
+const outfile = path.resolve(outDir, 'index.js')
 const externalDependencies = ['readline', 'fs', 'path']
 
 const cleanup = () => {
     try {
         console.log(`    > Cleaning up...`)
         fs.unlinkSync(outfile)
+    } catch (e) {}
+}
+
+const createDistDir = () => {
+    console.log(`    > creating dist directory...`)
+    try {
+        fs.mkdirSync(outDir)
     } catch (e) {}
 }
 
@@ -104,6 +112,7 @@ const build = () => {
     try {
         console.log('** BUILDING **')
         cleanup()
+        createDistDir()
         bundle()
         typeCheck()
         console.log('    ✅ build successful')
