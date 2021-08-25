@@ -937,4 +937,300 @@ both="some 'single' and \\"double \\" quotes"
     expect(render.mock.calls).toEqual([[ mergedAst, options ]])
     expect(fs.writeFileSync.mock.calls).toEqual([['.env', mergedEnvCode, { encoding: 'utf8' }]])
   })
+
+  test('that on unix systems, variable values containing \n, \r\n, and \r newlines are written as \n in double quotes', async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
+    fs.existsSync.mockReturnValueOnce(true);
+    const distEnvCode = `contains="a\nbunch\r\nof\rnewlines"`
+    fs.readFileSync.mockReturnValueOnce(distEnvCode);
+    const distTokens: Token[] = [
+      {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 10,
+        value: "contains",
+      },
+      {
+        type: TokenType.operator,
+        position: 10,
+        line: 1,
+        column: 11,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.quote,
+        position: 11,
+        line: 1,
+        column: 12,
+        length: 1,
+        value: "\"",
+      },
+      {
+        type: TokenType.literal,
+        position: 12,
+        line: 1,
+        column: 13,
+        length: 20,
+        value: "a\nbunch\r\nof\rnewlines",
+      },
+      {
+        type: TokenType.quote,
+        position: 32,
+        line: 1,
+        column: 33,
+        length: 1,
+        value: "\"",
+      },
+    ];
+    analyzeEnvSourceCode.mockReturnValueOnce(distTokens);
+    const distDocument: ParsedEnvDocument = {
+      variablesByName: {
+        contains: {
+          type: NodeType.variableDeclaration,
+          identifier: {
+            type: NodeType.identifier,
+            name: "contains",
+          },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.double,
+            content: {
+              type: NodeType.literal,
+              value: "a\nbunch\r\nof\rnewlines",
+            },
+          },
+        },
+      },
+      abstractSyntaxTree: {
+        type: NodeType.document,
+        statements: [
+          {
+            type: NodeType.variableDeclaration,
+            identifier: {
+              type: NodeType.identifier,
+              name: "contains",
+            },
+            value: {
+              type: NodeType.quotedLiteral,
+              quoteType: QuoteType.double,
+              content: {
+                type: NodeType.literal,
+                value: "a\nbunch\r\nof\rnewlines",
+              },
+            },
+          },
+        ],
+      },
+    }
+    parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
+    fs.existsSync.mockReturnValueOnce(false);
+    const localDocument: ParsedEnvDocument = {
+      variablesByName: {},
+      abstractSyntaxTree: {
+        type: NodeType.document,
+        statements: [],
+      },
+    };
+    parseEnvTokens.mockReturnValueOnce(localDocument);
+    const mergedEnvCode = `SOME WRITTEN .ENV CONTENT`
+    render.mockReturnValueOnce(mergedEnvCode)
+
+    const options: Options = {
+      distFilePath: ".env.dist",
+      localFilePath: ".env",
+      prompts: false,
+      allowDuplicates: false,
+      newlineType: NewlineType.unix,
+    };
+    await merger.merge(options)
+
+    expect(path.resolve.mock.calls).toEqual([['.env.dist'], ['.env']])
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
+    expect(fs.readFileSync.mock.calls).toEqual([
+      ["/path/to/.env.dist", { encoding: "utf8" }],
+    ]);
+    expect(analyzeEnvSourceCode.mock.calls).toEqual([[ "/path/to/.env.dist", distEnvCode ]])
+    const localTokens: Token[] = []
+    expect(parseEnvTokens.mock.calls).toEqual([
+      ["/path/to/.env.dist", distTokens, options],
+      ["/path/to/.env", localTokens, options]
+    ])
+    const mergedAst: DocumentNode = {
+      type: NodeType.document,
+      statements: [
+        {
+          type: NodeType.variableDeclaration,
+          identifier: {
+            type: NodeType.identifier,
+            name: "contains",
+          },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.double,
+            content: {
+              type: NodeType.literal,
+              value: "a\nbunch\nof\nnewlines",
+            },
+          },
+        },
+        {
+          type: NodeType.newline,
+        },
+      ],
+    }
+    expect(render.mock.calls).toEqual([[ mergedAst, options ]])
+    expect(fs.writeFileSync.mock.calls).toEqual([['.env', mergedEnvCode, { encoding: 'utf8' }]])
+  })
+
+  test('that on windows systems, variable values containing \n, \r\n, and \r newlines are written as \r\n in double quotes', async () => {
+    path.resolve.mockReturnValueOnce('/path/to/.env.dist')
+    fs.existsSync.mockReturnValueOnce(true);
+    const distEnvCode = `contains="a\nbunch\r\nof\rnewlines"`
+    fs.readFileSync.mockReturnValueOnce(distEnvCode);
+    const distTokens: Token[] = [
+      {
+        type: TokenType.identifier,
+        position: 0,
+        line: 1,
+        column: 1,
+        length: 10,
+        value: "contains",
+      },
+      {
+        type: TokenType.operator,
+        position: 10,
+        line: 1,
+        column: 11,
+        length: 1,
+        value: "=",
+      },
+      {
+        type: TokenType.quote,
+        position: 11,
+        line: 1,
+        column: 12,
+        length: 1,
+        value: "\"",
+      },
+      {
+        type: TokenType.literal,
+        position: 12,
+        line: 1,
+        column: 13,
+        length: 20,
+        value: "a\nbunch\r\nof\rnewlines",
+      },
+      {
+        type: TokenType.quote,
+        position: 32,
+        line: 1,
+        column: 33,
+        length: 1,
+        value: "\"",
+      },
+    ];
+    analyzeEnvSourceCode.mockReturnValueOnce(distTokens);
+    const distDocument: ParsedEnvDocument = {
+      variablesByName: {
+        contains: {
+          type: NodeType.variableDeclaration,
+          identifier: {
+            type: NodeType.identifier,
+            name: "contains",
+          },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.double,
+            content: {
+              type: NodeType.literal,
+              value: "a\nbunch\r\nof\rnewlines",
+            },
+          },
+        },
+      },
+      abstractSyntaxTree: {
+        type: NodeType.document,
+        statements: [
+          {
+            type: NodeType.variableDeclaration,
+            identifier: {
+              type: NodeType.identifier,
+              name: "contains",
+            },
+            value: {
+              type: NodeType.quotedLiteral,
+              quoteType: QuoteType.double,
+              content: {
+                type: NodeType.literal,
+                value: "a\nbunch\r\nof\rnewlines",
+              },
+            },
+          },
+        ],
+      },
+    }
+    parseEnvTokens.mockReturnValueOnce(distDocument);
+    path.resolve.mockReturnValueOnce('/path/to/.env')
+    fs.existsSync.mockReturnValueOnce(false);
+    const localDocument: ParsedEnvDocument = {
+      variablesByName: {},
+      abstractSyntaxTree: {
+        type: NodeType.document,
+        statements: [],
+      },
+    };
+    parseEnvTokens.mockReturnValueOnce(localDocument);
+    const mergedEnvCode = `SOME WRITTEN .ENV CONTENT`
+    render.mockReturnValueOnce(mergedEnvCode)
+
+    const options: Options = {
+      distFilePath: ".env.dist",
+      localFilePath: ".env",
+      prompts: false,
+      allowDuplicates: false,
+      newlineType: NewlineType.windows,
+    };
+    await merger.merge(options)
+
+    expect(path.resolve.mock.calls).toEqual([['.env.dist'], ['.env']])
+    expect(fs.existsSync.mock.calls).toEqual([["/path/to/.env.dist"], ["/path/to/.env"]]);
+    expect(fs.readFileSync.mock.calls).toEqual([
+      ["/path/to/.env.dist", { encoding: "utf8" }],
+    ]);
+    expect(analyzeEnvSourceCode.mock.calls).toEqual([[ "/path/to/.env.dist", distEnvCode ]])
+    const localTokens: Token[] = []
+    expect(parseEnvTokens.mock.calls).toEqual([
+      ["/path/to/.env.dist", distTokens, options],
+      ["/path/to/.env", localTokens, options]
+    ])
+    const mergedAst: DocumentNode = {
+      type: NodeType.document,
+      statements: [
+        {
+          type: NodeType.variableDeclaration,
+          identifier: {
+            type: NodeType.identifier,
+            name: "contains",
+          },
+          value: {
+            type: NodeType.quotedLiteral,
+            quoteType: QuoteType.double,
+            content: {
+              type: NodeType.literal,
+              value: "a\r\nbunch\r\nof\r\nnewlines",
+            },
+          },
+        },
+        {
+          type: NodeType.newline,
+        },
+      ],
+    }
+    expect(render.mock.calls).toEqual([[ mergedAst, options ]])
+    expect(fs.writeFileSync.mock.calls).toEqual([['.env', mergedEnvCode, { encoding: 'utf8' }]])
+  })
 });

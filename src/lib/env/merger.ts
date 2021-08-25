@@ -14,8 +14,8 @@ import {
 import { Render } from "lib/env/renderer";
 import fs from "fs";
 import path from "path";
-import { Options } from "lib/options";
-import { FileError, FileNotFoundError, LexicalError } from "./error";
+import { NewlineType, Options } from "lib/options";
+import { FileNotFoundError } from "./error";
 
 export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
 export type NodePath = Pick<typeof path, "resolve">
@@ -133,7 +133,7 @@ export class Merger implements MergerInterface {
         value = userInputEnvironmentVariable.value
       }
       
-      const variable = createVariableDeclaration(name, value);
+      const variable = createVariableDeclaration(name, value, options);
       addVariableToDocument(variable, newLocalDocument);
     }
 
@@ -185,26 +185,33 @@ const getValueFromVariable = (variable: VariableDeclarationNode): string => {
 
 const createVariableDeclaration = (
   name: string,
-  value: string
+  value: string,
+  { newlineType }: Options
 ): VariableDeclarationNode => {
   const identifier: IdentifierNode = { type: NodeType.identifier, name };
   const isEmpty = !value;
   if (isEmpty) return { type: NodeType.variableDeclaration, identifier };
 
+  const hasNewlines = value.indexOf('\n') > -1 || value.indexOf('\r') > -1
   const hasSingleQuotes = value.indexOf("'") > -1;
   const hasDoubleQuotes = value.indexOf('"') > -1;
   const isQuoted = hasSingleQuotes || hasDoubleQuotes;
-  if (isQuoted) {
+  if (hasNewlines || isQuoted) {
     const hasSingleAndDoubleQuotes = hasSingleQuotes && hasDoubleQuotes;
     const quoteType =
-      hasSingleAndDoubleQuotes || hasSingleQuotes
+      hasSingleAndDoubleQuotes || hasSingleQuotes || hasNewlines
         ? QuoteType.double
         : QuoteType.single;
-    const valueWithEscapedDoubleQuotes = value.replace(/"/g, '\\"');
+    const valueWithSafeDoubleQuotes =
+      hasSingleAndDoubleQuotes ? value.replace(/"/g, '\\"') : value;
+    const valueWithConvertedNewlines =
+      hasNewlines
+        ? getContentWithNewlineType(valueWithSafeDoubleQuotes, newlineType)
+        : valueWithSafeDoubleQuotes;
 
     const rawLiteral: RawLiteralNode = {
       type: NodeType.literal,
-      value: hasSingleAndDoubleQuotes ? valueWithEscapedDoubleQuotes : value,
+      value: valueWithConvertedNewlines,
     };
 
     const quotedLiteral: QuotedLiteralNode = {
@@ -222,3 +229,9 @@ const createVariableDeclaration = (
   const rawLiteral: RawLiteralNode = { type: NodeType.literal, value };
   return { type: NodeType.variableDeclaration, identifier, value: rawLiteral };
 };
+
+const getContentWithNewlineType = (content: string, newlineType: NewlineType): string => {
+  const isWindows = newlineType === NewlineType.windows
+  const newlineChar = isWindows ? '\r\n' : '\n'
+  return content.replace(/(?:\r\n)|(?:\r)|(?:\n)/g, newlineChar)
+}
