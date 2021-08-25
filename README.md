@@ -10,7 +10,7 @@ As new variables are added to the **distributed file**, your team is prompted fo
 ## Getting started
 1) Install env-prompt:
 ```sh
-$ npm install -D env-prompt
+npm install -D env-prompt
 ```
 
 2) Add the `env-prompt` command to a script in your `package.json` file:
@@ -19,7 +19,7 @@ $ npm install -D env-prompt
   "name": "test",
   "main": "index.js",
 + "scripts": {
-+   "start": "env-prompt"
++   "postinstall": "env-prompt"
 + },
   "devDependencies": {
     "env-prompt": "^2.0.0"
@@ -31,10 +31,10 @@ $ npm install -D env-prompt
 ```
 API_HOSTNAME=https://example.com
 API_USER=api_user
-API_PASS=myL1tP4$$w0rd
+API_PASS=myP4$$w0rd
 ```
 
-Env-prompt is now set up to diff your `.env` and `.env.dist` files when executing `npm run start`.
+Env-prompt is now set up to diff your `.env` and `.env.dist` files, and will be triggered when you run `npm install`.
 
 ## Command-line interface
 ### Synopsis

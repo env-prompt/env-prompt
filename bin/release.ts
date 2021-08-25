@@ -50,7 +50,7 @@ const gitStatus = async (cwd: string) =>
     await spawnWithForwardedStdIo('git', ['status'], { cwd })
 
 const buildDist = async (cwd: string) =>
-    await spawnWithForwardedStdIo('npm', ['run', 'build-dist'], { cwd })
+    await spawnWithForwardedStdIo('npm', ['run', 'build:dist'], { cwd })
 
 const npmInstall = async (cwd: string) =>
     await spawnWithForwardedStdIo('npm', ['install'], { cwd })
