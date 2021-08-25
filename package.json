@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node bin/build.ts --watch",
     "build": "ts-node bin/build.ts --build",
-    "build:dist": "NODE_ENV=production ts-node bin/build.ts --build",
+    "build:dist": "ts-node bin/build.ts --build --env=production",
     "test:automated": "npx jest --config=jest.automated.config.js",
     "test:unit": "npx jest --config=jest.unit.config.js",
     "release": "ts-node bin/release.ts"
