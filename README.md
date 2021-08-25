@@ -1,21 +1,19 @@
 # env-prompt
-A dependency-free utility that prompts you for your project's environment variables.
+Env-prompt is a Node.js utility that enables teams to seamlessly keep their environment variables in sync.
 
-## How does it work?
-On `npm install`, env-prompt reads environment variables from two files in your project:
- - a **distributed** file (default: **`.env.dist`**)
- - a git ignored **local** file (default: **`.env`**)
+You simply provide two **.env** files:
+ - a **distributed file** (default: **`.env.dist`**) committed to version control
+ - a git ignored **local file** (default: **`.env`**)
 
-Env-prompt will diff these two files, prompting you for any values that exist in your distributed file but not in your
- local file.  Your newly input values will be written to your local environment file.
+As new variables are added to the **distributed file**, your team is prompted for their values.
 
 ## Getting started
 1) Install env-prompt:
 ```sh
-$ npm install -D env-prompt
+npm install -D env-prompt
 ```
 
-2) Add a postinstall hook to your `package.json` file:
+2) Add the `env-prompt` command to a script in your `package.json` file:
 ```diff
 {
   "name": "test",
@@ -24,30 +22,61 @@ $ npm install -D env-prompt
 +   "postinstall": "env-prompt"
 + },
   "devDependencies": {
-    "env-prompt": "^1.0.0"
+    "env-prompt": "^2.0.0"
   }
 }
 ```
 
 3) Create a `.env.dist` file in the same directory as your `package.json` file:
 ```
-DB_USER=root
-DB_PASS=root123
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=sakila
+API_HOSTNAME=https://example.com
+API_USER=api_user
+API_PASS=myP4$$w0rd
 ```
 
-Env-prompt is now setup, and will be triggered when you run `npm install`.
+Env-prompt is now set up to diff your `.env` and `.env.dist` files, and will be triggered when you run `npm install`.
 
-## Options
+## Command-line interface
+### Synopsis
 ```sh
--d, --distFile <path>
-       Change the distributed environment file env-prompt reads from. (default: .env.dist)
-
--l, --localFile <path>
-       Change the local environment file env-prompt reads from and writes to. (default: .env)
+[CI=<true|false>] npx env-prompt
+    [-d|--distFile <path>]
+    [-l|--localFile <path>]
+    [-p|--prompts <true|false>]
+    [-a|--allowDuplicates]
+    [-n|--newlineType <unix|windows>]
 ```
 
-## [Product backlog](https://github.com/env-prompt/env-prompt/issues?q=is%3Aissue+is%3Aopen+label%3Agroomed)
-*Is your use case not covered?  Feel free to [open an issue](https://github.com/env-prompt/env-prompt/issues/new).*
+### Arguments
+#### `-d <path>`
+#### `--distFile <path>`
+_Default: `.env.dist`_\
+This is the .env file that env-prompt will scan for new environment variables. It is recommended that you commit this file to version control.
+
+
+#### `-l <path>`
+#### `--localFile <path>`
+_Default: `.env`_\
+This is the .env file for your local environment. When prompted for new variables, the input values will be written here. It is recommended that you add this file to the `.gitignore` of your project.
+
+#### `-p <true|false>`
+#### `--prompts <true|false>`
+_Default: `true`_\
+When setting `--prompts false`, env-prompt will run headlessly and will not prompt the user when new variables are detected.
+The default value from the distributed file will be written for new variables.
+
+#### `-a`
+#### `--allowDuplicates`
+By default, an error is raised when duplicate variable declarations are found. The presence of this flag supresses this error.
+
+#### `-n <unix|windows>`
+#### `--newlineType <unix|windows>`
+_Default (on non-windows systems): `unix`_\
+_Default (on windows): `windows`_\
+Determines how newlines will be written to disk. For `unix`, `\n` will be used. For `windows`, `\r\n` will be used.
+This argument only impacts how newlines are _written_ to disk. Regardless of this value, `\n`, `\r\n`, and `\r` are all _read_ from disk as newlines.
+
+### Variables
+#### `CI=<true|false>`
+_Default: `false`_\
+Indicates whether or not env-prompt is being run by continous integration. Setting `CI=true` is equivalent to `--prompts false`.

@@ -4,9 +4,11 @@
   "description": "A dependency-free utility that prompts you for your project's environment variables.",
   "main": "index.js",
   "scripts": {
-    "start": "webpack --mode=development --watch",
-    "build-dist": "webpack --mode=production",
-    "test:functional": "npx jest ./test/functional/test.ts",
+    "start": "ts-node bin/build.ts --watch",
+    "build": "ts-node bin/build.ts --build",
+    "build:dist": "ts-node bin/build.ts --build --env=production",
+    "test:automated": "npx jest --config=jest.automated.config.js",
+    "test:unit": "npx jest --config=jest.unit.config.js",
     "release": "ts-node bin/release.ts"
   },
   "repository": {
@@ -31,15 +33,13 @@
   "author": "Brian Kotos <brian.kotos@gmail.com>",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^26.0.15",
-    "@types/node": "^10.17.13",
-    "jest": "^26.4.2",
-    "ts-jest": "^26.4.1",
-    "ts-loader": "^5.4.5",
+    "@types/jest": "^27.0.1",
+    "@types/node": "^14.11.2",
+    "chokidar": "^3.5.2",
+    "esbuild": "^0.12.21",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.5",
     "ts-node": "^9.0.0",
-    "tsconfig-paths-webpack-plugin": "^3.2.0",
-    "typescript": "^3.9.7",
-    "webpack": "^4.41.4",
-    "webpack-cli": "^3.3.10"
+    "typescript": "^4.3.5"
   }
 }
