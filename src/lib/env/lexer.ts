@@ -51,11 +51,11 @@ const getTokenAtPosition = (path: string, src: string, position: number, tokens:
     }
 
     if (!isQuotedLiteral) {
-        const isComment = COMMENT_EXPRESSION.test(firstChar)
-        if (isComment) return makeCommentToken(position, src, tokens)
-
         const isCommentBody = isLastTokenComment(tokens)
         if (isCommentBody) return makeCommentBodyToken(position, src, tokens)
+
+        const isComment = COMMENT_EXPRESSION.test(firstChar)
+        if (isComment) return makeCommentToken(position, src, tokens)
 
         const isWhiteSpace = /^\s$/.test(firstChar)
         if (isWhiteSpace) return makeWhiteSpaceToken(position, src, tokens)

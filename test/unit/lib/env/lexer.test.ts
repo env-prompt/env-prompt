@@ -28,6 +28,16 @@ describe('.env lexer', () => {
       ] as Token[])
     })
 
+    test('that comment bodies can contain the starting # comment char', () => {
+      const path = '/path/to/.env'
+      const envFile = '##### Flags #####'
+      const tokens = analyzeEnvSourceCode(path, envFile)
+      expect(tokens).toEqual([
+        { type: 'comment', position: 0, line: 1, column: 1, length: 1, value: '#' },
+        { type: 'commentBody', position: 1, line: 1, column: 2, length: 16, value: '#### Flags #####' }
+      ] as Token[])
+    })
+
     test("that comment bodies don't need to start with a white space", () => {
       const path = '/path/to/.env'
       const envFile = '#lol'
