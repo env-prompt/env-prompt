@@ -1,6 +1,6 @@
 {
   "name": "env-prompt",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "A dependency-free utility that prompts you for your project's environment variables.",
   "main": "index.js",
   "scripts": {
