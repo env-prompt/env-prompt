@@ -1,5 +1,4 @@
-import fs from "fs"
-import path from "path"
+import { NodeFs, NodePath } from "."
 import { bold, underline, italic } from "../cli"
 
 const getHeadingContent = (version: string): string => {
@@ -45,9 +44,6 @@ ${bold('VARIABLES')}
         Indicates whether or not env-prompt is being run by continous integration. Setting CI=true is
         equivalent to --prompts false.
 `
-
-export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;
-export type NodePath = Pick<typeof path, "resolve">
 
 interface PackageJson {
     version: string

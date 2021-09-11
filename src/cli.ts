@@ -7,7 +7,7 @@ import { analyzeEnvSourceCode } from "./lib/env/lexer"
 import { parseEnvTokens } from "./lib/env/parser"
 import { render } from "./lib/env/renderer"
 import { Merger } from "./lib/env/merger"
-import merge from './lib/command/merge'
+import cli from "./lib/command"
 
 const readLineFactory = () => readline.createInterface(process.stdin, process.stdout)
 const stdIoReader = new StdIoReader(readLineFactory)
@@ -20,4 +20,11 @@ const merger = new Merger()
     .setFs(fs)
     .setPath(path)
 
-merge(merger, cliPrompter, process)
+cli({
+    console,
+    fs,
+    path,
+    merger,
+    cliPrompter,
+    process
+})
