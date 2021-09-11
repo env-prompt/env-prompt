@@ -2,7 +2,7 @@
   "name": "env-prompt",
   "version": "2.0.3",
   "description": "A dependency-free utility that prompts you for your project's environment variables.",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "start": "ts-node bin/build.ts --watch",
     "build": "ts-node bin/build.ts --build",
@@ -28,7 +28,7 @@
   ],
   "readmeFilename": "README.md",
   "bin": {
-    "env-prompt": "./dist/index.js"
+    "env-prompt": "./dist/cli.js"
   },
   "author": "Brian Kotos <brian.kotos@gmail.com>",
   "license": "MIT",

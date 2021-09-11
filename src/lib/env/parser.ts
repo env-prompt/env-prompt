@@ -1,5 +1,5 @@
-import { Token, TokenType } from "lib/env/lexer"
-import { Options } from "lib/options"
+import { Token, TokenType } from "./lexer"
+import { Options } from "../options"
 import { DuplicateVariableError, ExpectedAssignmentAfterIdentifierError, InvalidTokenAfterCommentError, InvalidTokenAfterIdentifierError, UnexpectedTokenError } from "./error"
 
 export enum NodeType {

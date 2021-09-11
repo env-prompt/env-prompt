@@ -7,15 +7,44 @@ import tsconfig from '../tsconfig.json'
 import { TextEncoder } from 'util'
 
 const isProduction = process.argv.includes('--env=production')
-const entryPoint = path.resolve(__dirname, '../src/index.ts')
-const outDir = path.resolve(__dirname, '../dist')
-const outfile = path.resolve(outDir, 'index.js')
-const externalDependencies = ['readline', 'fs', 'path']
+const projectRoot = path.resolve(__dirname, '..')
+const outDir = path.resolve(projectRoot, 'dist')
+const srcDir = path.resolve(projectRoot, 'src')
+const entryPoint = path.resolve(srcDir, 'cli.ts')
+
+const getRelativePath = (fullPath: string): string => fullPath.replace(`${projectRoot}/`, '')
+
+const getCompileSubjectsInDir = (dir: string): CompileSubject[] => {
+    const nodes = fs.readdirSync(dir)
+    return nodes.map((f): CompileSubject|CompileSubject[] => {
+        const fullPath = path.resolve(dir, f)
+        const outPath = fullPath.replace(srcDir, outDir)
+
+        const isDir = fs.lstatSync(fullPath).isDirectory()
+        if (isDir) {
+            fs.mkdirSync(outPath)
+            return getCompileSubjectsInDir(fullPath)
+        }
+
+        const outfile = outPath.replace('.ts', '.js')
+        return {
+            entryPoint: fullPath,
+            outfile
+        }
+    }).flat()
+}
+const getCompileSubjects = (): CompileSubject[] => getCompileSubjectsInDir(srcDir)
+let compileSubjects: CompileSubject[]
+
+interface CompileSubject {
+    entryPoint: string
+    outfile: string
+}
 
 const cleanup = () => {
     try {
         console.log(`    > Cleaning up...`)
-        fs.unlinkSync(outfile)
+        fs.rmdirSync(outDir, { recursive: true })
     } catch (e) {}
 }
 
@@ -28,10 +57,10 @@ const createDistDir = () => {
 
 const typeCheck = () => {
     console.log('    > Running typescript compiler...')
+    const { compilerOptions } = tsconfig
+    delete compilerOptions.lib
     const options: ts.CompilerOptions = {
-        ...(tsconfig.compilerOptions as any as ts.CompilerOptions),
-        noEmit: true,
-        noImplicitAny: true,
+        ...(compilerOptions as any as ts.CompilerOptions),
         target: ts.ScriptTarget.ES5
     }
     const program = ts.createProgram([entryPoint], options)
@@ -68,23 +97,32 @@ const typeCheckAsync = () => new Promise<void>((resolve, reject) => setTimeout((
     resolve()
 }, 0))
 
-const bundle = () => {
+const bundle = async (subjects: CompileSubject[]) => {
     console.log('    > Running esbuild...')
     try {
         const environmentOptions: esbuild.BuildOptions = isProduction ? { minify: true } : { sourcemap: 'inline' }
-        const result = esbuild.buildSync({
-            entryPoints: [entryPoint],
-            bundle: true,
-            write: false,
-            outfile,
-            target: 'node10.4',
-            external: externalDependencies,
-            ...environmentOptions,
-        })
-        const [ output ] = result.outputFiles
-        writeBin(output)
+        for (const { entryPoint, outfile } of subjects) {
+            const relativeEntryPath = getRelativePath(entryPoint)
+            const relativeOutPath = getRelativePath(outfile)
+            console.log(`        - ${relativeEntryPath} -> ${relativeOutPath}`)
+            const result = await esbuild.build({
+                entryPoints: [entryPoint],
+                bundle: false,
+                write: false,
+                outfile,
+                target: 'node10.4',
+                format: 'cjs',
+                ...environmentOptions,
+            })
+            const [ output ] = result.outputFiles
+            const isBin = relativeOutPath === 'dist/cli.js'
+            if (isBin) {
+                console.log(`        * chmod +x ${relativeOutPath}`)
+                writeBin(output)
+            } else writeFile(output)
+        }
     } catch (e) {
-        console.log('        * esbuild finished with errors')
+        console.log('        * esbuild finished with errors', e)
         throw e
     }
     console.log('        * esbuild finished with no errors')
@@ -101,6 +139,8 @@ const writeBin = ({ path, contents }: esbuild.OutputFile) => {
     makeExecutable(path)
 }
 
+const writeFile = ({ path, contents }: esbuild.OutputFile) => fs.writeFileSync(path, contents)
+
 const mergeBytes = (a: Uint8Array, b: Uint8Array): Uint8Array => {
     const merged = new Uint8Array(a.length + b.length)
     merged.set(a),
@@ -108,12 +148,13 @@ const mergeBytes = (a: Uint8Array, b: Uint8Array): Uint8Array => {
     return merged
 }
 
-const build = () => {
+const build = async () => {
     try {
         console.log('** BUILDING **')
         cleanup()
         createDistDir()
-        bundle()
+        compileSubjects = getCompileSubjects()
+        await bundle(compileSubjects)
         typeCheck()
         console.log('    ✅ build successful')
     } catch (e) {
@@ -121,7 +162,7 @@ const build = () => {
     }
 }
 
-const watch = () => {
+const watch = async () => {
     let isDebouncing = false
     const printSpacesIfNotDebounding = () => {
         if (!isDebouncing) {
@@ -133,8 +174,7 @@ const watch = () => {
     const onChange = async () => {
         isDebouncing = false
         try {
-            cleanup()
-            bundle()
+            await bundle(compileSubjects)
             await typeCheckAsync()
             console.log('    ✅ rebuild successful')
         } catch (e) {
@@ -146,7 +186,7 @@ const watch = () => {
         printSpacesIfNotDebounding()
         console.log('** WATCHING**')
         const watchDir = path.resolve('src')
-        let rebuildTimeout
+        let rebuildTimeout: NodeJS.Timeout
         chokidar.watch(watchDir, { ignoreInitial: true }).on('all', (event, path) => {
             printSpacesIfNotDebounding()
             console.log(`    > File changed (${event}): ${path}`)
@@ -156,22 +196,22 @@ const watch = () => {
     }
 
     try {
-        build()
+        await build()
     } catch (e) {}
     startWatching()
 }
 
-const main = () => {
+const main = async () => {
     const isBuild = process.argv.includes('--build')
     if (isBuild) {
         try {
-            build()
+            await build()
         } catch (e) {}
         return
     }
     
     const isWatch = process.argv.includes('--watch')
-    if (isWatch) return watch()
+    if (isWatch) return await watch()
 
     console.log('No task specified. Use --build or --watch.')
 }

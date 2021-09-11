@@ -1,5 +1,5 @@
-import { getColumn, getLine, Token } from "lib/env/lexer";
-import { NewlineType } from "lib/options";
+import { Token } from "./lexer";
+import { NewlineType } from "../options";
 
 export interface FileCoordinates {
     line: number
