@@ -4,6 +4,9 @@ import { getMessageForError } from "./env/error"
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
 const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
+export const bold = (message: string): string => `\x1b[1m${message}\x1b[0m`
+export const italic = (message: string): string => `\x1b[3m${message}\x1b[0m`
+export const underline = (message: string): string => `\x1b[4m${message}\x1b[0m`
 const buildQuestion = (name: string, defaultValue: string): string => {
     const hasDefaultValue = defaultValue.trim().length > 0
     const defaultValueNote = hasDefaultValue ? ` (${fgYellow(defaultValue)})` : ''
