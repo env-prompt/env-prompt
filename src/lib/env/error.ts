@@ -78,6 +78,7 @@ export class InvalidArgumentError implements Error {
 
     public readonly message: string = ''
 
+    // TODO remove this and use "name"
     protected argumentName: string
 
     public setArgumentName(argumentName: string): this {
@@ -91,6 +92,17 @@ export class InvalidArgumentError implements Error {
 }
 export class InvalidNewlineTypeError extends InvalidArgumentError {}
 
+export class MissingArgumentValueError implements Error {
+    public name: string = ''
+
+    public readonly message: string = ''
+
+    public setName (name: string): this {
+        this.name = name
+        return this
+    }
+}
+
 export const getMessageForError = (error: Error): string => {
     const fileNotFound = error instanceof FileNotFoundError
     if (fileNotFound) return getMessageForFileNotFoundError(error as FileNotFoundError)
@@ -103,6 +115,9 @@ export const getMessageForError = (error: Error): string => {
     
     const isInvalidArgumentError = error instanceof InvalidArgumentError
     if (isInvalidArgumentError) return getMessageForInvalidArgumentError(error as InvalidArgumentError)
+
+    const isMissingArgumentValueError = error instanceof MissingArgumentValueError
+    if (isMissingArgumentValueError) return getMessageForMissingArgumentValueError(error as MissingArgumentValueError)
 
     return `ERROR: ${(error).message}`
 }
@@ -156,6 +171,11 @@ const getMessageForInvalidArgumentError = (error: InvalidArgumentError) => {
     const name = error.getArgumentName()
     return `Invalid argument ${name}`
 }
+
+const sanitizeArgumentName = (name: string): string => name.split('').filter(char => /^[-a-zA-Z]$/.test(char)).join('')
+
+const getMessageForMissingArgumentValueError = ({ name }: MissingArgumentValueError): string =>
+    `Missing value for argument ${sanitizeArgumentName(name)}`
 
 const getPositionDescription = (filePath: string, { line, column }: FileCoordinates): string =>
     `at ${filePath}:${line}:${column}`

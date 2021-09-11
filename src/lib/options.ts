@@ -1,4 +1,4 @@
-import { InvalidArgumentError, InvalidNewlineTypeError } from "./env/error"
+import { InvalidArgumentError, InvalidNewlineTypeError, MissingArgumentValueError } from "./env/error"
 
 type RawArgument = string
 type ArgumentName = string
@@ -50,32 +50,27 @@ export const getOptionsFromEnvironment = ({ argv, env, platform }: ProcessDepend
 }
 
 const mapArgumentToOptions = ([name, value]: Argument, options: Partial<Options>) => {
-    const isDistFilePath = name === '-d' || name === '--distFile'
-    if (isDistFilePath) {
+    if (isDistFileArgument(name)) {
         options.distFilePath = String(value)
         return
     }
 
-    const isLocalFilePath = name === '-l' || name === '--localFile'
-    if (isLocalFilePath) {
+    if (isLocalFileArgument(name)) {
         options.localFilePath = String(value)
         return
     }
 
-    const isPrompts = name === '-p' || name === '--prompts'
-    if (isPrompts) {
+    if (isPromptsArgument(name)) {
         options.prompts = getBooleanFromArgumentValue(value)
         return
     }
 
-    const isAllowDuplicates = name === '-a' || name === '--allowDuplicates'
-    if (isAllowDuplicates) {
+    if (isAllowDuplicatesArgument(name)) {
         options.allowDuplicates = getBooleanFromArgumentValue(value)
         return
     }
 
-    const isNewlineType = name === '-n' || name === '--newlineType'
-    if (isNewlineType) {
+    if (isNewlineTypeArgument(name)) {
         const validTypes = Object.values(NewlineType)
         const isValid = validTypes.find(type => type === value)
         if (!isValid) throw new InvalidNewlineTypeError()
@@ -99,6 +94,15 @@ const getArgumentNameAndInlineValue = (rawArgument: string): [string, string?] =
     return [name, inlineValue]
 }
 
+const isDistFileArgument = (name: string): boolean => name === '-d' || name === '--distFile'
+const isLocalFileArgument = (name: string): boolean => name === '-l' || name === '--localFile'
+const isPromptsArgument = (name: string): boolean => name === '-p' || name === '--prompts'
+const isAllowDuplicatesArgument = (name: string): boolean => name === '-a' || name === '--allowDuplicates'
+const isNewlineTypeArgument = (name: string): boolean => name === '-n' || name === '--newlineType'
+
+const isArgumentValueRequired = (name: string): boolean =>
+    isDistFileArgument(name) || isLocalFileArgument(name) || isNewlineTypeArgument(name)
+
 const getArgumentNameAndValue = (rawArguments: RawArgument[], i: number): Argument => {
     const rawArgument = rawArguments[i]
     const [name, inlineValue] = getArgumentNameAndInlineValue(rawArgument)
@@ -108,6 +112,9 @@ const getArgumentNameAndValue = (rawArguments: RawArgument[], i: number): Argume
     
     const valueIndex = i + 1
     const value = rawArguments[valueIndex]
+
+    const hasValue = !!value
+    if (!hasValue && isArgumentValueRequired(name)) throw new MissingArgumentValueError().setName(name)
 
     const isEndOfRawArguments = rawArguments.length === valueIndex
     const isValueAnArgumentName = isArgumentName(value)
