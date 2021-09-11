@@ -1,10 +1,10 @@
-import { NodeFs, NodePath } from "."
-import { bold, underline, italic } from "../cli"
+import { PackageJsonReader } from "../package-json"
+import { bold, underline, italic, getUnformattedContent, getCenteredContent } from "../cli"
 
 const getHeadingContent = (version: string): string => {
-    const formattedContent = `${bold('env-prompt')} v${version}`
-    const rawContentLength = `env-prompt v${version}`.length
-    return getCenteredContent(formattedContent, rawContentLength, process.stdout.columns)
+    const content = `${bold('env-prompt')} v${version}`
+    const rawContent = getUnformattedContent(content)
+    return getCenteredContent(content, rawContent.length, process.stdout.columns)
 }
 
 const getMergeContent = (): string =>
@@ -45,30 +45,12 @@ ${bold('VARIABLES')}
         equivalent to --prompts false.
 `
 
-interface PackageJson {
-    version: string
-}
-const getVersion = (fs: NodeFs, path: NodePath): string => {
-    const versionPath = path.resolve(__dirname, '../../../package.json')
-    const { version } = JSON.parse(fs.readFileSync(versionPath, { encoding: 'utf8' })) as PackageJson
-    return version
-}
-
-const getCenteredContent = (formattedContent: string, rawContentLength: number, cols: number): string => {
-    const halfContentLength = Math.floor(rawContentLength / 2)
-    const halfScreenLength = Math.floor(cols / 2)
-    const prependedWhitespaceLength = halfScreenLength - halfContentLength
-    const prependedWhitespace = new Array(prependedWhitespaceLength).fill(' ').join('')
-    return `${prependedWhitespace}${formattedContent}`
-}
-
 const getHorizontalRule = (cols: number): string => new Array(cols).fill('─').join('')
 
-export default (console: Console, fs: NodeFs, path: NodePath) => {
+export default (console: Console, packageJsonReader: PackageJsonReader) => {
     const hr = getHorizontalRule(process.stdout.columns)
-
     console.log(hr)
-    const version = getVersion(fs, path)
+    const version = packageJsonReader.getVersion()
     console.log(getHeadingContent(version))
     console.log('')
     console.log(getMergeContent())

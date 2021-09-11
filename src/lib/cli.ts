@@ -14,6 +14,17 @@ const buildQuestion = (name: string, defaultValue: string): string => {
     return `${bgCyan(name)}${defaultValueNote}: `
 }
 
+export const getUnformattedContent = (formattedContent: string): string =>
+    formattedContent.split('').filter(char => /^[a-zA-Z0-9 .-]$/.test(char)).join('')
+
+export const getCenteredContent = (formattedContent: string, rawContentLength: number, cols: number): string => {
+    const halfContentLength = Math.floor(rawContentLength / 2)
+    const halfScreenLength = Math.floor(cols / 2)
+    const prependedWhitespaceLength = halfScreenLength - halfContentLength
+    const prependedWhitespace = new Array(prependedWhitespaceLength).fill(' ').join('')
+    return `${prependedWhitespace}${formattedContent}`
+}
+
 export interface EnvironmentVariable {
     name: string
     value: string
