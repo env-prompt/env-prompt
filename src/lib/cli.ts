@@ -3,7 +3,7 @@ import { getMessageForError } from "./env/error"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
-const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
+export const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
 export const bold = (message: string): string => `\x1b[1m${message}\x1b[0m`
 export const italic = (message: string): string => `\x1b[3m${message}\x1b[0m`
 export const underline = (message: string): string => `\x1b[4m${message}\x1b[0m`
@@ -24,6 +24,9 @@ export const getCenteredContent = (formattedContent: string, rawContentLength: n
     const prependedWhitespace = new Array(prependedWhitespaceLength).fill(' ').join('')
     return `${prependedWhitespace}${formattedContent}`
 }
+
+export const sanitizeForConsole = (rawContent: string): string =>
+    rawContent.split('').filter(char => /[a-zA-Z0-9 _-]/.test(char)).join('')
 
 export interface EnvironmentVariable {
     name: string

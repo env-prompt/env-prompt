@@ -1,12 +1,13 @@
 import fs from "fs"
 import path from "path"
-import { CliPrompter } from "lib/cli"
-import { Merger } from "lib/env/merger"
+import { CliPrompter } from "../cli"
+import { Merger } from "../env/merger"
 import { ProcessDependencies as OptionsProcessDependencies } from "../options"
 import help from './help'
 import version from './version'
 import merge from './merge'
-import { PackageJsonReader } from "lib/package-json"
+import { PackageJsonReader } from "../package-json"
+import { InvalidCommandError } from "../env/error"
 
 // TODO rename ProcessDependencies?
 export type ProcessDependencies = Pick<NodeJS.Process, 'exit'> & OptionsProcessDependencies
@@ -23,7 +24,7 @@ interface CliDependencies {
     packageJsonReader: PackageJsonReader
 }
 
-export default async ({ merger, cliPrompter, process, packageJsonReader }: CliDependencies) => {
+const runCommand = async ({ merger, cliPrompter, process, packageJsonReader }: CliDependencies) => {
     const [,,command] = process.argv
 
     const isHelpCommand = command === 'help' || command === '--help'
@@ -32,7 +33,20 @@ export default async ({ merger, cliPrompter, process, packageJsonReader }: CliDe
     const isVersionCommand = command === 'version' || command === '--version' || command === '-v'
     if (isVersionCommand) return version(console, packageJsonReader)
 
-    await merge(merger, cliPrompter, process)
-    // TODO add warning here if not using "merge" command
-    // TODO add error here if unknown command
+    const isMergeCommand = command === 'merge'
+    const isCliFlag = /^-/.test(command)
+    const isImplicitMergeCommand = !command || isCliFlag
+    if (isMergeCommand || isImplicitMergeCommand) return await merge(merger, cliPrompter, process)
+
+    throw new InvalidCommandError().setName(command)
+}
+
+export default async (dependencies: CliDependencies) => {
+    try {
+        await runCommand(dependencies)
+    } catch (e) {
+        const { cliPrompter, process } = dependencies
+        cliPrompter.printError(e)
+        process.exit(1)
+    }
 }
