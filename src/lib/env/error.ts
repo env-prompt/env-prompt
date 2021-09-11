@@ -184,18 +184,14 @@ const getMessageForInvalidArgumentError = (error: InvalidArgumentError) => {
     }
     
     const name = error.getArgumentName()
-    return `Invalid argument ${name}`
+    return `Invalid argument ${sanitizeForConsole(name)}`
 }
-
-const sanitizeArgumentName = (name: string): string => name.split('').filter(char => /^[-a-zA-Z]$/.test(char)).join('')
 
 const getMessageForMissingArgumentValueError = ({ name }: MissingArgumentValueError): string =>
-    `Missing value for argument ${sanitizeArgumentName(name)}`
+    `Missing value for argument ${sanitizeForConsole(name)}`
 
-const getMessageForInvalidCommandError = ({ name }: InvalidCommandError) => {
-    const sanitizedName = sanitizeForConsole(name)
-    return `Invalid command "${sanitizedName}"`
-}
+const getMessageForInvalidCommandError = ({ name }: InvalidCommandError): string =>
+    `Invalid command "${sanitizeForConsole(name)}"`
 
 const getPositionDescription = (filePath: string, { line, column }: FileCoordinates): string =>
     `at ${filePath}:${line}:${column}`
