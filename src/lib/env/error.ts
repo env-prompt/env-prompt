@@ -1,5 +1,6 @@
-import { getColumn, getLine, Token } from "lib/env/lexer";
-import { NewlineType } from "lib/options";
+import { Token } from "./lexer";
+import { NewlineType } from "../options";
+import { sanitizeForConsole } from "../cli";
 
 export interface FileCoordinates {
     line: number
@@ -97,7 +98,18 @@ export class MissingArgumentValueError implements Error {
 
     public readonly message: string = ''
 
-    public setName (name: string): this {
+    public setName(name: string): this {
+        this.name = name
+        return this
+    }
+}
+
+export class InvalidCommandError implements Error {
+    public name: string = ''
+
+    public readonly message: string = ''
+
+    public setName(name: string): this {
         this.name = name
         return this
     }
@@ -118,6 +130,9 @@ export const getMessageForError = (error: Error): string => {
 
     const isMissingArgumentValueError = error instanceof MissingArgumentValueError
     if (isMissingArgumentValueError) return getMessageForMissingArgumentValueError(error as MissingArgumentValueError)
+
+    const isInvalidCommandError = error instanceof InvalidCommandError
+    if (isInvalidCommandError) return getMessageForInvalidCommandError(error as InvalidCommandError)
 
     return `ERROR: ${(error).message}`
 }
@@ -169,13 +184,14 @@ const getMessageForInvalidArgumentError = (error: InvalidArgumentError) => {
     }
     
     const name = error.getArgumentName()
-    return `Invalid argument ${name}`
+    return `Invalid argument ${sanitizeForConsole(name)}`
 }
 
-const sanitizeArgumentName = (name: string): string => name.split('').filter(char => /^[-a-zA-Z]$/.test(char)).join('')
-
 const getMessageForMissingArgumentValueError = ({ name }: MissingArgumentValueError): string =>
-    `Missing value for argument ${sanitizeArgumentName(name)}`
+    `Missing value for argument ${sanitizeForConsole(name)}`
+
+const getMessageForInvalidCommandError = ({ name }: InvalidCommandError): string =>
+    `Invalid command "${sanitizeForConsole(name)}"`
 
 const getPositionDescription = (filePath: string, { line, column }: FileCoordinates): string =>
     `at ${filePath}:${line}:${column}`

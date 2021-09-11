@@ -3,14 +3,15 @@
     "module": "commonjs",
     "target": "es5",
     "baseUrl": "src",
-    "paths": {
-      "lib/*": ["lib/*"]
-    },
-    "sourceMap": true,
+    "lib": ["es2019"],
+    "sourceMap": false,
     "allowSyntheticDefaultImports": true,
     "outDir": "dist",
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "declaration": true,
+    "emitDeclarationOnly": true
   },
   "exclude": [
     "node_modules",

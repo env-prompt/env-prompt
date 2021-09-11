@@ -1,4 +1,4 @@
-import { QuoteType } from "lib/env/parser"
+import { QuoteType } from "./parser"
 import { FileCoordinates, LexicalError } from "./error"
 
 export enum TokenType {

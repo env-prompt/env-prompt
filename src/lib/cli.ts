@@ -1,15 +1,32 @@
-import { StdIoReaderInterface } from "lib/std-io-reader"
+import { StdIoReaderInterface } from "./std-io-reader"
 import { getMessageForError } from "./env/error"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
 const fgRed = (message: string): string => `\x1b[31m${message}\x1b[0m`
-const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
+export const fgYellow = (message: string): string => `\x1b[33m${message}\x1b[0m`
+export const bold = (message: string): string => `\x1b[1m${message}\x1b[0m`
+export const italic = (message: string): string => `\x1b[3m${message}\x1b[0m`
+export const underline = (message: string): string => `\x1b[4m${message}\x1b[0m`
 const buildQuestion = (name: string, defaultValue: string): string => {
     const hasDefaultValue = defaultValue.trim().length > 0
     const defaultValueNote = hasDefaultValue ? ` (${fgYellow(defaultValue)})` : ''
 
     return `${bgCyan(name)}${defaultValueNote}: `
 }
+
+export const getUnformattedContent = (formattedContent: string): string =>
+    formattedContent.split('').filter(char => /^[a-zA-Z0-9 .-]$/.test(char)).join('')
+
+export const getCenteredContent = (formattedContent: string, rawContentLength: number, cols: number): string => {
+    const halfContentLength = Math.floor(rawContentLength / 2)
+    const halfScreenLength = Math.floor(cols / 2)
+    const prependedWhitespaceLength = halfScreenLength - halfContentLength
+    const prependedWhitespace = new Array(prependedWhitespaceLength).fill(' ').join('')
+    return `${prependedWhitespace}${formattedContent}`
+}
+
+export const sanitizeForConsole = (rawContent: string): string =>
+    rawContent.split('').filter(char => /[a-zA-Z0-9 _-]/.test(char)).join('')
 
 export interface EnvironmentVariable {
     name: string

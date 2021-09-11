@@ -8,8 +8,8 @@ import {
   QuotedLiteralNode,
   CommentNode,
   QuoteType,
-} from "lib/env/parser";
-import { NewlineType, Options } from "lib/options";
+} from "./parser";
+import { NewlineType, Options } from "../options";
 
 export type Render = typeof render
 export const render = (abstractSyntaxTree: DocumentNode, options: Options): string =>
