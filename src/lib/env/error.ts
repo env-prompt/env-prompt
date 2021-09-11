@@ -1,5 +1,6 @@
 import { Token } from "./lexer";
 import { NewlineType } from "../options";
+import { sanitizeForConsole } from "../cli";
 
 export interface FileCoordinates {
     line: number
@@ -91,6 +92,17 @@ export class InvalidArgumentError implements Error {
 }
 export class InvalidNewlineTypeError extends InvalidArgumentError {}
 
+export class InvalidCommandError implements Error {
+    public name: string = ''
+
+    public readonly message: string = ''
+
+    public setName(name: string): this {
+        this.name = name
+        return this
+    }
+}
+
 export const getMessageForError = (error: Error): string => {
     const fileNotFound = error instanceof FileNotFoundError
     if (fileNotFound) return getMessageForFileNotFoundError(error as FileNotFoundError)
@@ -103,6 +115,9 @@ export const getMessageForError = (error: Error): string => {
     
     const isInvalidArgumentError = error instanceof InvalidArgumentError
     if (isInvalidArgumentError) return getMessageForInvalidArgumentError(error as InvalidArgumentError)
+
+    const isInvalidCommandError = error instanceof InvalidCommandError
+    if (isInvalidCommandError) return getMessageForInvalidCommandError(error as InvalidCommandError)
 
     return `ERROR: ${(error).message}`
 }
@@ -155,6 +170,11 @@ const getMessageForInvalidArgumentError = (error: InvalidArgumentError) => {
     
     const name = error.getArgumentName()
     return `Invalid argument ${name}`
+}
+
+const getMessageForInvalidCommandError = ({ name }: InvalidCommandError) => {
+    const sanitizedName = sanitizeForConsole(name)
+    return `Invalid command "${sanitizedName}"`
 }
 
 const getPositionDescription = (filePath: string, { line, column }: FileCoordinates): string =>
