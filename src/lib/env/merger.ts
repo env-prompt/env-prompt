@@ -1,5 +1,5 @@
-import { CliPrompterInterface } from "lib/cli";
-import { Token, AnalyzeEnvSourceCode } from "lib/env/lexer";
+import { CliPrompterInterface } from "../cli";
+import { Token, AnalyzeEnvSourceCode } from "./lexer";
 import {
   ParsedEnvDocument,
   ParseEnvTokens,
@@ -10,11 +10,11 @@ import {
   IdentifierNode,
   QuoteType,
   NewlineNode,
-} from "lib/env/parser";
-import { Render } from "lib/env/renderer";
+} from "./parser";
+import { Render } from "./renderer";
 import fs from "fs";
 import path from "path";
-import { NewlineType, Options } from "lib/options";
+import { NewlineType, Options } from "../options";
 import { FileNotFoundError } from "./error";
 
 export type NodeFs = Pick<typeof fs, "existsSync" | "readFileSync" | "writeFileSync">;

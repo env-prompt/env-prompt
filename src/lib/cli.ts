@@ -1,4 +1,4 @@
-import { StdIoReaderInterface } from "lib/std-io-reader"
+import { StdIoReaderInterface } from "./std-io-reader"
 import { getMessageForError } from "./env/error"
 
 const bgCyan = (message: string): string => `\x1b[46m${message}\x1b[0m`
